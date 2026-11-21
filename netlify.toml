@@ -14,3 +14,13 @@ status = 200
 from = "/tools/receipt-generator/*"
 to = "/tools/receipt-generator/index.html"
 status = 200
+
+[[redirects]]
+from = "/tools/invoice-generator"
+to = "/tools/invoice-generator/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/invoice-generator/*"
+to = "/tools/invoice-generator/index.html"
+status = 200
