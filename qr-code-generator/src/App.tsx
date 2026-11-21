@@ -28,7 +28,7 @@ function downloadFile(contents: string, filename: string, mime: string) {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function sanitizeFilename(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9-_]+/g, "-").replace(/^-|-$/g, "") || "qr-code";
@@ -127,6 +127,7 @@ export default function App() {
     reader.onload = () => {
       setLogo(String(reader.result || ""));
       setLogoName(file.name);
+      patchOption("errorCorrection", "H");
       setDownloadError("");
     };
     reader.onerror = () => setDownloadError("Unable to read this logo file.");
@@ -213,7 +214,7 @@ export default function App() {
               <div className="section-title"><span>03</span><div><h3>Add a logo</h3><p>Place a small image at the centre of your QR code.</p></div></div>
               {logo ? <div className="logo-preview"><img src={logo} alt="Selected logo"/><div><b>{logoName || "Custom logo"}</b><small>Logo is embedded into the downloaded image.</small></div><button type="button" className="icon-button danger" onClick={() => {setLogo("");setLogoName("");}} aria-label="Remove logo"><Trash2 size={16}/></button></div> : <label className="logo-drop"><ImagePlus size={20}/><b>Choose a logo image</b><span>PNG, JPG, WebP or other browser-supported image · up to 350 KB</span><input type="file" accept="image/*" onChange={uploadLogo} hidden/></label>}
               {logo ? <button type="button" className="text-button remove-logo" onClick={() => {setLogo("");setLogoName("");}}>Remove logo</button> : null}
-              <p className="hint-line">For best scan reliability, use a simple logo and keep it small. High error correction is selected manually in Advanced settings.</p>
+              <p className="hint-line">Adding a logo automatically selects High error correction. Use a simple logo, keep it small, and test the downloaded code before printing.</p>
             </section>
             <div className="editor-footer"><span><ShieldCheck size={15}/> QR content is generated locally in your browser.</span><button type="button" className="text-button" onClick={reset}><RotateCcw size={14}/> Reset</button></div>
           </div>
