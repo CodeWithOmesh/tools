@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from "react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { ArrowDownToLine, ArrowUpRight, CalendarDays, Check, FileText, ImagePlus, Plus, Printer, RotateCcw, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
-import { calculateInvoice, formatMoney } from "./money";
+import { calculateInvoice, decimal, formatMoney } from "./money";
 import InvoicePdf from "./InvoicePdf";
 import { createDefaultInvoice, DRAFT_KEY, type Invoice, type InvoiceItem, type PartyDetails } from "./types";
 
@@ -50,7 +50,7 @@ function InvoicePaper({ invoice }: { invoice: Invoice }) {
     </div>
     <div className="paper-accent"/>
     <div className="paper-parties"><section><label>BILL TO</label><strong>{invoice.client.name || "Client name"}</strong>{partyDetails(invoice.client).map((line, i) => <span key={i}>{line}</span>)}</section><section><label>STATUS</label><strong className={`status ${totals.status.toLowerCase().replace(" ", "-")}`}>{totals.status}</strong><span>{invoice.currency}</span></section></div>
-    <table className="paper-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>{invoice.items.map(item => <tr key={item.id}><td>{item.description || "—"}</td><td>{item.quantity || "0"}</td><td>{formatMoney(item.unitPrice, invoice.currency)}</td><td>{formatMoney(Number(item.quantity || 0) * Number(item.unitPrice || 0), invoice.currency)}</td></tr>)}</tbody></table>
+    <table className="paper-table"><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>{invoice.items.map(item => <tr key={item.id}><td>{item.description || "—"}</td><td>{item.quantity || "0"}</td><td>{formatMoney(item.unitPrice, invoice.currency)}</td><td>{formatMoney(decimal(item.quantity).times(decimal(item.unitPrice)), invoice.currency)}</td></tr>)}</tbody></table>
     <div className="paper-summary"><div className="summary-line"><span>Subtotal</span><b>{formatMoney(totals.subtotal, invoice.currency)}</b></div><div className="summary-line"><span>Discount</span><b>−{formatMoney(totals.discount, invoice.currency)}</b></div><div className="summary-line"><span>{invoice.taxLabel || "Tax"}</span><b>{formatMoney(totals.tax, invoice.currency)}</b></div><div className="summary-total"><span>Total</span><strong>{formatMoney(totals.total, invoice.currency)}</strong></div><div className="summary-line"><span>Amount paid</span><b>{formatMoney(totals.amountPaid, invoice.currency)}</b></div><div className="summary-due"><span>Amount due</span><strong>{formatMoney(totals.amountDue, invoice.currency)}</strong></div></div>
     <div className="paper-bottom">{invoice.paymentDetails ? <section><label>PAYMENT DETAILS</label><p>{invoice.paymentDetails}</p></section> : null}{invoice.notes ? <section><label>NOTES</label><p>{invoice.notes}</p></section> : null}{invoice.terms ? <section><label>TERMS & CONDITIONS</label><p>{invoice.terms}</p></section> : null}</div>
     {invoice.footer ? <div className="paper-footer">{invoice.footer}</div> : null}
