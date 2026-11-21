@@ -24,3 +24,13 @@ status = 200
 from = "/tools/invoice-generator/*"
 to = "/tools/invoice-generator/index.html"
 status = 200
+
+[[redirects]]
+from = "/tools/qr-code-generator"
+to = "/tools/qr-code-generator/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/qr-code-generator/*"
+to = "/tools/qr-code-generator/index.html"
+status = 200
