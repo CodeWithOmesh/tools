@@ -1,5 +1,5 @@
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
-import { calculateInvoice, formatMoney } from "./money";
+import { calculateInvoice, decimal, formatMoney } from "./money";
 import type { Invoice } from "./types";
 
 const styles = StyleSheet.create({
@@ -80,7 +80,7 @@ export default function InvoicePdf({ invoice }: { invoice: Invoice }) {
               <Text style={styles.desc}>{item.description || "—"}</Text>
               <Text style={styles.qty}>{item.quantity || "0"}</Text>
               <Text style={styles.rate}>{formatMoney(item.unitPrice, invoice.currency)}</Text>
-              <Text style={styles.amount}>{formatMoney(Number(item.quantity || 0) * Number(item.unitPrice || 0), invoice.currency)}</Text>
+              <Text style={styles.amount}>{formatMoney(decimal(item.quantity).times(decimal(item.unitPrice)), invoice.currency)}</Text>
             </View>
           ))}
         </View>
