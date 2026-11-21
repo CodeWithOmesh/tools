@@ -1,15 +1,58 @@
-# Code with Omesh Tools
+# Code with Omesh – Free Online Tools
 
-A collection of free, practical and privacy-first online tools by Code with Omesh.
+A collection of independent, privacy-first online tools built by Code with Omesh.
 
-## Receipt Generator
+## Repository structure
 
-Production route: https://codewithomesh.com/tools/receipt-generator
+Each tool lives in its own top-level directory and owns its application code, dependencies, build configuration, tests, public assets and documentation.
 
-Features include Simple and Professional templates, ISO currency selection, business branding, optional logo upload, customer and item details, fixed or percentage discounts and taxes, derived payment states, a live preview, PDF download, printing, A4 and thermal paper layouts, and local browser drafts.
+```text
+.
+├── receipt-generator/
+│   ├── public/
+│   ├── src/
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── README.md
+├── scripts/
+│   └── run-tools.mjs
+├── .github/workflows/
+└── netlify.toml
+```
 
-## Development
+Add future tools as sibling folders such as `invoice-generator/`, `qr-code-generator/` and `image-compressor/`.
 
-Requires Node.js 20+ and npm. Run npm install, npm run dev, npm run typecheck, npm test, and npm run build.
+## Available tools
 
-Receipt information is processed in the visitor browser. Draft fields are saved in local storage; the optional logo is stored in IndexedDB on the same device. This tool creates general payment receipts and is not legal, tax, or accounting advice.
+| Tool | URL path | Project folder |
+|---|---|---|
+| Receipt Generator | `/tools/receipt-generator/` | `receipt-generator/` |
+
+## Run one tool locally
+
+```bash
+cd receipt-generator
+npm install
+npm run dev
+```
+
+## Build and verify all tools
+
+From the repository root:
+
+```bash
+npm run build
+npm run verify
+```
+
+The root scripts automatically discover top-level tool folders containing a `package.json` with a build script. Each project is installed, checked and built independently. For the combined website build, tool output is placed under `dist/tools/<tool-name>/`.
+
+Each tool's Vite config should use its production route as the base path and write to `../dist/tools/<tool-name>` with `emptyOutDir: false`. This lets the tools share a single deployable `dist` directory without one build erasing another.
+
+## Deployment
+
+Connect the repository to Netlify using the repository root as the base directory. The root `netlify.toml` runs `npm run build` and publishes `dist`.
+
+## Privacy
+
+Tools should process sensitive user content in the browser whenever practical. Each tool's README documents its own storage and privacy behavior.
