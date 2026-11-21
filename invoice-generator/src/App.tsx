@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from "react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ArrowDownToLine, ArrowUpRight, CalendarDays, Check, ChevronDown, FileText, ImagePlus, Plus, Printer, RotateCcw, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { ArrowDownToLine, ArrowUpRight, CalendarDays, Check, FileText, ImagePlus, Plus, Printer, RotateCcw, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { calculateInvoice, formatMoney } from "./money";
 import InvoicePdf from "./InvoicePdf";
 import { createDefaultInvoice, DRAFT_KEY, type Invoice, type InvoiceItem, type PartyDetails } from "./types";
