@@ -65,11 +65,11 @@ export function calculateInvoice(invoice: Invoice): InvoiceTotals {
   const total = round(taxableAmount.plus(tax));
   const amountPaid = round(Decimal.max(0, decimal(invoice.amountPaid)));
   const amountDue = round(Decimal.max(0, total.minus(amountPaid)));
-  const status = amountDue.lte(0) && total.gt(0)
-    ? "Paid"
-    : amountPaid.gt(0) && amountDue.gt(0)
-      ? "Partially paid"
-      : "Unpaid";
+  const status = total.lte(0)
+    ? amountPaid.gt(0) ? "Paid" : "Unpaid"
+    : amountPaid.gte(total) ? "Paid"
+      : amountPaid.gt(0) ? "Partially paid"
+        : "Unpaid";
 
   return { subtotal, discount, taxableAmount, tax, total, amountPaid, amountDue, status };
 }
