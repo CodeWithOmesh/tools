@@ -9,32 +9,31 @@ Each tool lives in its own top-level directory and owns its application code, de
 ```text
 .
 ├── receipt-generator/
-│   ├── public/
-│   ├── src/
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── README.md
+├── invoice-generator/
 ├── scripts/
 │   └── run-tools.mjs
 ├── .github/workflows/
 └── netlify.toml
 ```
 
-Add future tools as sibling folders such as `invoice-generator/`, `qr-code-generator/` and `image-compressor/`.
+Add future tools as sibling folders such as `qr-code-generator/`, `image-compressor/` and `word-counter/`.
 
 ## Available tools
 
 | Tool | URL path | Project folder |
 |---|---|---|
 | Receipt Generator | `/tools/receipt-generator/` | `receipt-generator/` |
+| Invoice Generator | `/tools/invoice-generator/` | `invoice-generator/` |
 
 ## Run one tool locally
 
 ```bash
-cd receipt-generator
+cd invoice-generator
 npm install
 npm run dev
 ```
+
+Change to `receipt-generator` to run the Receipt Generator.
 
 ## Build and verify all tools
 
