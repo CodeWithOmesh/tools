@@ -50,3 +50,4 @@ describe("QR payload builder", () => {
     expect(initialFields("url").url).toBe("https://example.com");
     expect(initialFields("wifi").security).toBe("WPA");
   });
+});
