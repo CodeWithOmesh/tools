@@ -44,6 +44,10 @@ describe("QR payload builder", () => {
 
   it("requires an event to end after it starts", () => {
     expect(() => buildQrPayload("event", { title: "Meetup", start: "2026-10-10T10:00", end: "2026-10-10T09:00" })).toThrow("end must be after");
+    const payload = buildQrPayload("event", { title: "Meetup", start: "2026-10-10T10:00", end: "2026-10-10T11:00" });
+    expect(payload).toContain("BEGIN:VCALENDAR");
+    expect(payload).toContain("BEGIN:VEVENT");
+    expect(payload).toContain("END:VCALENDAR");
   });
 
   it("provides default values for each QR type", () => {
