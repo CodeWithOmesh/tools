@@ -2,7 +2,7 @@ import Decimal from "decimal.js";
 import type {Receipt,Totals} from "./types";
 Decimal.set({precision:40,rounding:Decimal.ROUND_HALF_UP});
 export function dec(value:string|number|Decimal|undefined|null){try{return value===undefined||value===null||value===""?new Decimal(0):new Decimal(value)}catch{return new Decimal(0)}}
-export function currencyDigits(currency:string){try{return new Intl.NumberFormat("en",{style:"currency",currency}).resolvedOptions().maximumFractionDigits}catch{return 2}}
+export function currencyDigits(currency:string){try{return new Intl.NumberFormat("en",{style:"currency",currency}).resolvedOptions().maximumFractionDigits ?? 2}catch{return 2}}
 export function roundMoney(value:Decimal,currency:string){return value.toDecimalPlaces(currencyDigits(currency),Decimal.ROUND_HALF_UP)}
 export function money(value:Decimal|string|number,currency:string,locale="en-US"){const rounded=roundMoney(dec(value),currency),digits=currencyDigits(currency);try{return new Intl.NumberFormat(locale,{style:"currency",currency,minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Number(rounded.toFixed(digits)))}catch{return currency+" "+rounded.toFixed(digits)}}
 export function calculate(receipt:Receipt):Totals{
