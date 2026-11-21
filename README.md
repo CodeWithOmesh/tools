@@ -10,13 +10,14 @@ Each tool lives in its own top-level directory and owns its application code, de
 .
 ├── receipt-generator/
 ├── invoice-generator/
+├── qr-code-generator/
 ├── scripts/
 │   └── run-tools.mjs
 ├── .github/workflows/
 └── netlify.toml
 ```
 
-Add future tools as sibling folders such as `qr-code-generator/`, `image-compressor/` and `word-counter/`.
+Add future tools as sibling folders such as `image-compressor/`, `word-counter/` and `json-formatter/`.
 
 ## Available tools
 
@@ -24,16 +25,17 @@ Add future tools as sibling folders such as `qr-code-generator/`, `image-compres
 |---|---|---|
 | Receipt Generator | `/tools/receipt-generator/` | `receipt-generator/` |
 | Invoice Generator | `/tools/invoice-generator/` | `invoice-generator/` |
+| QR Code Generator | `/tools/qr-code-generator/` | `qr-code-generator/` |
 
 ## Run one tool locally
 
 ```bash
-cd invoice-generator
+cd qr-code-generator
 npm install
 npm run dev
 ```
 
-Change to `receipt-generator` to run the Receipt Generator.
+Change to `receipt-generator` or `invoice-generator` to run the other tools.
 
 ## Build and verify all tools
 
@@ -50,7 +52,7 @@ Each tool's Vite config should use its production route as the base path and wri
 
 ## Deployment
 
-Connect the repository to Netlify using the repository root as the base directory. The root `netlify.toml` runs `npm run build` and publishes `dist`.
+Connect the repository to Netlify using the repository root as the base directory. The root `netlify.toml` runs `npm run build` and publishes `dist`. A route rewrite is configured for every tool so its client-side app can load on direct navigation.
 
 ## Privacy
 
