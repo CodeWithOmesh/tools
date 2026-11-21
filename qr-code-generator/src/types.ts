@@ -114,10 +114,10 @@ export function buildQrPayload(type: QrContentType, fields: QrFields): string {
       const start = eventDate(required(fields, "start", "a start date and time"));
       const end = eventDate(required(fields, "end", "an end date and time"));
       if (end <= start) throw new Error("The event end must be after its start.");
-      const lines = ["BEGIN:VEVENT", `SUMMARY:${title}`, `DTSTART:${start}`, `DTEND:${end}`];
+      const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Code with Omesh//QR Event//EN", "CALSCALE:GREGORIAN", "BEGIN:VEVENT", `SUMMARY:${title}`, `DTSTART:${start}`, `DTEND:${end}`];
       if (fields.location?.trim()) lines.push(`LOCATION:${escapeVCard(fields.location)}`);
       if (fields.description?.trim()) lines.push(`DESCRIPTION:${escapeVCard(fields.description)}`);
-      lines.push("END:VEVENT");
+      lines.push("END:VEVENT", "END:VCALENDAR");
       return lines.join("\r\n");
     }
   }
