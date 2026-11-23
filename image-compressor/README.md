@@ -15,18 +15,18 @@ A privacy-first image compressor for JPG, PNG and WebP images. This app processe
 
 ## Run locally
 
-\`\`\`bash
+```bash
 npm install
 npm run dev
-\`\`\`
+```
 
 ## Verify and build
 
-\`\`\`bash
+```bash
 npm test
 npm run typecheck
 npm run build
-\`\`\`
+```
 
 ## Limits and behavior
 
