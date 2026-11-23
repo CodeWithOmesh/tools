@@ -54,3 +54,13 @@ status = 200
 from = "/tools/quotation-generator/*"
 to = "/tools/quotation-generator/index.html"
 status = 200
+
+[[redirects]]
+from = "/tools/pdf-tools"
+to = "/tools/pdf-tools/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/pdf-tools/*"
+to = "/tools/pdf-tools/index.html"
+status = 200
