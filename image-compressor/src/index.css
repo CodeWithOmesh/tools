@@ -53,32 +53,82 @@ a {
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-family: Manrope, sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -0.45px;
+  gap: 12px;
 }
-.brand b {
-  color: var(--accent);
-  font-weight: 800;
-}
+/* Brand header shared with the other Code with Omesh tools. */
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 31px;
-  height: 31px;
-  border-radius: 10px;
-  background: #f5b84b;
-  color: #17130b;
+  width: 39px;
+  height: 39px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #f8c66d, #c88723);
+  color: #17130c;
+  font:
+    800 13px Manrope,
+    sans-serif;
+  box-shadow: 0 4px 22px #d99b2930;
 }
-.back-link {
+.brand-name {
+  font:
+    700 17px Manrope,
+    sans-serif;
+  letter-spacing: -0.5px;
+  line-height: 1.12;
+}
+.brand-name b {
+  font-weight: 500;
+}
+.brand-name small {
+  display: block;
+  margin-top: 5px;
+  color: #7f8999;
+  font:
+    600 9px "DM Sans",
+    sans-serif;
+  letter-spacing: 1.8px;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.free-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid #354235;
+  border-radius: 100px;
+  background: #17201a;
+  color: #b8d5b5;
+  font-size: 11px;
+  font-weight: 600;
+}
+.free-pill i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #7ecb86;
+  box-shadow: 0 0 9px #7ecb8670;
+}
+.header-link,
+.footer a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #b8c0cc;
   font-size: 12px;
-  color: #abb4c4;
 }
-.back-link span {
+.header-link:hover,
+.footer a:hover {
   color: var(--accent);
-  padding-left: 4px;
+}
+@media (max-width: 560px) {
+  .free-pill {
+    display: none;
+  }
 }
 .page {
   width: min(1120px, calc(100% - 40px));
@@ -674,6 +724,9 @@ a {
   padding: 22px max(24px, calc((100vw - 1120px) / 2));
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
   color: #768194;
   font-size: 10px;
 }
@@ -780,4 +833,9 @@ a {
     padding: 18px 15px;
     font-size: 9px;
   }
+}
+.kept {
+  margin-left: 3px;
+  color: #9fb4cf;
+  font-weight: 600;
 }

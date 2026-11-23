@@ -37,6 +37,35 @@ export function money(value: Decimal | string | number, currency: string, locale
     return currency + " " + rounded.toFixed(digits);
   }
 }
+// The built-in PDF fonts (Helvetica) use WinAnsi encoding. Characters outside that set,
+// such as ₹ ₱ ₩ ₫ ₪ or the Unicode minus sign, are silently replaced with wrong glyphs.
+const WIN_ANSI_EXTRAS = new Set("€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ");
+export function isPdfSafeText(text: string): boolean {
+  for (const char of text) {
+    const code = char.codePointAt(0) ?? 0;
+    const printable = (code >= 0x20 && code <= 0x7e) || (code >= 0xa0 && code <= 0xff);
+    if (!printable && code !== 0x0a && !WIN_ANSI_EXTRAS.has(char)) return false;
+  }
+  return true;
+}
+/** Formats money for the PDF, falling back to the ISO code when the symbol cannot be drawn. */
+export function pdfMoney(value: Decimal | string | number, currency: string) {
+  const formatted = money(value, currency);
+  if (isPdfSafeText(formatted)) return formatted;
+  const rounded = roundMoney(dec(value), currency),
+    digits = currencyDigits(currency);
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      currencyDisplay: "code",
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(Number(rounded.toFixed(digits)));
+  } catch {
+    return currency + " " + rounded.toFixed(digits);
+  }
+}
 export function calculate(receipt: Receipt): Totals {
   const subtotal = roundMoney(
     receipt.items.reduce((sum, item) => {

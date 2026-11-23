@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from "react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 import {
   ArrowDownToLine,
   ArrowUpRight,
@@ -7,6 +6,7 @@ import {
   Check,
   FileText,
   ImagePlus,
+  LoaderCircle,
   Plus,
   Printer,
   RotateCcw,
@@ -15,14 +15,25 @@ import {
   Trash2,
 } from "lucide-react";
 import { calculateInvoice, decimal, formatMoney } from "./money";
-import InvoicePdf from "./InvoicePdf";
 import {
   createDefaultInvoice,
   DRAFT_KEY,
+  validateInvoice,
   type Invoice,
   type InvoiceItem,
   type PartyDetails,
 } from "./types";
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 const currencyCodes = [
   "AED",
@@ -148,22 +159,25 @@ function PartyFields({
   onChange: (next: PartyDetails) => void;
   onLogo: (data: string) => void;
 }) {
+  const [logoError, setLogoError] = useState("");
   const patch = (key: keyof PartyDetails, next: string) => onChange({ ...value, [key]: next });
   const uploadLogo = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    event.target.value = "";
+    setLogoError("");
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      window.alert("Please choose an image file.");
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      setLogoError("Use a PNG, JPG or WebP image for your logo.");
       return;
     }
     if (file.size > 1_500_000) {
-      window.alert("Please choose an image smaller than 1.5 MB.");
+      setLogoError("Choose a logo smaller than 1.5 MB.");
       return;
     }
     const reader = new FileReader();
     reader.onload = () => onLogo(String(reader.result || ""));
+    reader.onerror = () => setLogoError("This image could not be read. Try another file.");
     reader.readAsDataURL(file);
-    event.target.value = "";
   };
   return (
     <div className="party-form">
@@ -173,10 +187,20 @@ function PartyFields({
           <label className="logo-upload">
             <ImagePlus size={14} />
             {value.logoDataUrl ? "Change logo" : "Add logo"}
-            <input type="file" accept="image/*" onChange={uploadLogo} hidden />
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={uploadLogo}
+              hidden
+            />
           </label>
         ) : null}
       </div>
+      {logoError ? (
+        <p className="field-error" role="alert">
+          {logoError}
+        </p>
+      ) : null}
       {value.logoDataUrl && title === "Your business" ? (
         <div className="logo-row">
           <img src={value.logoDataUrl} alt="Business logo" />
@@ -302,10 +326,12 @@ function InvoicePaper({ invoice }: { invoice: Invoice }) {
           <span>Subtotal</span>
           <b>{formatMoney(totals.subtotal, invoice.currency)}</b>
         </div>
-        <div className="summary-line">
-          <span>Discount</span>
-          <b>−{formatMoney(totals.discount, invoice.currency)}</b>
-        </div>
+        {totals.discount.gt(0) ? (
+          <div className="summary-line">
+            <span>Discount</span>
+            <b>−{formatMoney(totals.discount, invoice.currency)}</b>
+          </div>
+        ) : null}
         <div className="summary-line">
           <span>{invoice.taxLabel || "Tax"}</span>
           <b>{formatMoney(totals.tax, invoice.currency)}</b>
@@ -376,6 +402,8 @@ export default function App() {
   const [hydrated, setHydrated] = useState(false);
   const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
   const [saved, setSaved] = useState(true);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [actionError, setActionError] = useState("");
   const totals = useMemo(() => calculateInvoice(invoice), [invoice]);
   const patch = <K extends keyof Invoice>(key: K, value: Invoice[K]) =>
     setInvoice((current) => ({ ...current, [key]: value }));
@@ -430,15 +458,34 @@ export default function App() {
       invoice.items.filter((item) => item.id !== id),
     );
   const reset = () => {
-    if (
-      !window.confirm(
-        "Replace this invoice with a fresh example? Your current browser draft will be overwritten.",
-      )
-    )
+    if (!window.confirm("Start a new invoice? Your current draft in this browser will be cleared."))
       return;
+    setActionError("");
     setInvoice(createDefaultInvoice());
   };
-  const printInvoice = () => window.print();
+  const checkInvoice = () => {
+    const problem = validateInvoice(invoice);
+    setActionError(problem ?? "");
+    if (problem) setMobileTab("edit");
+    return !problem;
+  };
+  const printInvoice = () => {
+    if (checkInvoice()) window.print();
+  };
+  const downloadPdf = async () => {
+    if (pdfBusy || !checkInvoice()) return;
+    setPdfBusy(true);
+    try {
+      const { createInvoicePdf } = await import("./pdf");
+      const blob = await createInvoicePdf(invoice);
+      const name = invoice.invoiceNumber.trim().replace(/[^a-z0-9-_]+/gi, "-") || "invoice";
+      downloadBlob(blob, `${name}.pdf`);
+    } catch {
+      setActionError("The PDF could not be created. Please try again, or use Print instead.");
+    } finally {
+      setPdfBusy(false);
+    }
+  };
 
   return (
     <div className="app-shell">
@@ -630,7 +677,7 @@ export default function App() {
                       />
                       <span className="item-total">
                         {formatMoney(
-                          Number(item.quantity || 0) * Number(item.unitPrice || 0),
+                          decimal(item.quantity).times(decimal(item.unitPrice)),
                           invoice.currency,
                         )}
                       </span>
@@ -766,7 +813,7 @@ export default function App() {
                   <ShieldCheck size={15} /> Your invoice data stays in this browser.
                 </span>
                 <button type="button" className="text-button" onClick={reset}>
-                  <RotateCcw size={14} /> Reset example
+                  <RotateCcw size={14} /> New invoice
                 </button>
               </div>
             </div>
@@ -784,19 +831,25 @@ export default function App() {
             <div className="preview-stage">
               <InvoicePaper invoice={invoice} />
             </div>
+            {actionError ? (
+              <p className="action-error" role="alert">
+                {actionError}
+              </p>
+            ) : null}
             <div className="action-bar">
-              <PDFDownloadLink
-                document={<InvoicePdf invoice={invoice} />}
-                fileName={`${(invoice.invoiceNumber || "invoice").replace(/[^a-z0-9-_]/gi, "-")}.pdf`}
+              <button
+                type="button"
                 className="download-button"
+                onClick={() => void downloadPdf()}
+                disabled={pdfBusy}
               >
-                {({ loading, error }) => (
-                  <>
-                    <ArrowDownToLine size={16} />
-                    {loading ? "Preparing PDF…" : error ? "PDF unavailable" : "Download PDF"}
-                  </>
+                {pdfBusy ? (
+                  <LoaderCircle size={16} className="spin" />
+                ) : (
+                  <ArrowDownToLine size={16} />
                 )}
-              </PDFDownloadLink>
+                {pdfBusy ? "Preparing PDF…" : "Download PDF"}
+              </button>
               <button type="button" className="print-button" onClick={printInvoice}>
                 <Printer size={16} /> Print invoice
               </button>

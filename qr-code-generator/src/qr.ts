@@ -24,6 +24,38 @@ export async function renderQrPng(
   return overlayLogo(dataUrl, logoDataUrl, options.size, options.light);
 }
 
+function relativeLuminance(hex: string): number | null {
+  const match = /^#?([\da-f]{3}|[\da-f]{6})$/i.exec(hex.trim());
+  if (!match) return null;
+  const digits =
+    match[1].length === 3
+      ? match[1]
+          .split("")
+          .map((digit) => digit + digit)
+          .join("")
+      : match[1];
+  const [r, g, b] = [0, 2, 4].map((offset) => {
+    const channel = parseInt(digits.slice(offset, offset + 2), 16) / 255;
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** Returns a user-facing warning when the chosen colours are likely to scan poorly. */
+export function contrastWarning(dark: string, light: string): string {
+  const darkLuminance = relativeLuminance(dark);
+  const lightLuminance = relativeLuminance(light);
+  if (darkLuminance === null || lightLuminance === null) return "";
+  if (darkLuminance >= lightLuminance) {
+    return "The QR colour is lighter than the background. Many phone scanners cannot read inverted codes, so use a dark QR colour on a light background.";
+  }
+  const ratio = (lightLuminance + 0.05) / (darkLuminance + 0.05);
+  if (ratio < 4) {
+    return "The QR and background colours are quite similar. Increase the contrast so the code scans reliably.";
+  }
+  return "";
+}
+
 function loadImage(source: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();

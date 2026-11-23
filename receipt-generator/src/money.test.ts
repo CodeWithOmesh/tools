@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculate, currencyDigits, money } from "./money";
+import { calculate, currencyDigits, money, pdfMoney } from "./money";
 import { defaultReceipt } from "./store";
 describe("receipt calculations", () => {
   it("calculates discount and tax after discount", () => {
@@ -40,5 +40,17 @@ describe("receipt calculations", () => {
     r.items = [{ id: "a", description: "Item", quantity: "2", unitPrice: "25" }];
     r.amountPaid = "0";
     expect(calculate(r).status).toBe("unpaid");
+  });
+});
+
+describe("PDF money formatting", () => {
+  it("keeps symbols the PDF font can draw", () => {
+    expect(pdfMoney("1234.5", "USD")).toBe("$1,234.50");
+    expect(pdfMoney("1234.5", "EUR")).toBe("€1,234.50");
+  });
+  it("falls back to the ISO code for symbols the PDF font cannot draw", () => {
+    for (const currency of ["INR", "PHP", "KRW", "VND", "ILS"]) {
+      expect(pdfMoney("1234.5", currency).startsWith(currency)).toBe(true);
+    }
   });
 });

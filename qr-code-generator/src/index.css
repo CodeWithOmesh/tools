@@ -547,9 +547,6 @@ a {
   background: #3a2224;
   color: #ff9393;
 }
-.remove-logo {
-  margin-top: 9px;
-}
 .text-button {
   display: inline-flex;
   align-items: center;
@@ -663,6 +660,11 @@ a {
   color: #ffb4b4;
   font-size: 10px;
   line-height: 1.5;
+}
+.warning-message {
+  border-color: #6b5527;
+  background: #2b2414;
+  color: #f4cf86;
 }
 .download-actions {
   display: grid;

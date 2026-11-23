@@ -2,6 +2,8 @@ import {
   outputExtension,
   outputMimeType,
   resizedDimensions,
+  safeOutputName,
+  shouldKeepOriginal,
   type CompressorSettings,
 } from "./types";
 
@@ -11,6 +13,8 @@ export interface CompressedImage {
   height: number;
   mimeType: string;
   filename: string;
+  /** True when re-encoding could not beat the original, so the original file is returned. */
+  keptOriginal: boolean;
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement, mimeType: string, quality: number): Promise<Blob> {
@@ -64,16 +68,22 @@ export async function compressImage(
     context.drawImage(bitmap, 0, 0, dimensions.width, dimensions.height);
 
     const quality = Math.min(1, Math.max(0.1, settings.quality / 100));
-    const blob = await canvasToBlob(canvas, mimeType, quality);
-    const extension = outputExtension(mimeType);
-    const filename = file.name.replace(/\.[^.]+$/, "") + "-compressed." + extension;
+    const encoded = await canvasToBlob(canvas, mimeType, quality);
+    const resized = dimensions.width !== bitmap.width || dimensions.height !== bitmap.height;
+    const keptOriginal = shouldKeepOriginal({
+      originalBytes: file.size,
+      outputBytes: encoded.size,
+      sameFormat: mimeType === file.type,
+      resized,
+    });
 
     return {
-      blob,
+      blob: keptOriginal ? file : encoded,
       width: dimensions.width,
       height: dimensions.height,
       mimeType,
-      filename,
+      filename: safeOutputName(file.name, outputExtension(mimeType)),
+      keptOriginal,
     };
   } finally {
     bitmap?.close();

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import JSZip from "jszip";
 import {
   ArrowDownToLine,
+  ArrowUpRight,
   Check,
   ChevronDown,
   FileImage,
@@ -187,17 +188,22 @@ function App() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <a className="brand" href="https://codewithomesh.com" aria-label="Code with Omesh home">
-          <span className="brand-mark">
-            <Sparkles size={19} />
-          </span>
-          <span>
-            code with <b>omesh</b>
+        <a className="brand" href="https://codewithomesh.com">
+          <span className="brand-mark">&lt;O/&gt;</span>
+          <span className="brand-name">
+            Code <b>with Omesh</b>
+            <small>FREE ONLINE TOOLS</small>
           </span>
         </a>
-        <a className="back-link" href="https://codewithomesh.com/tools">
-          Explore all tools <span>↗</span>
-        </a>
+        <div className="header-right">
+          <span className="free-pill">
+            <i />
+            Free tool
+          </span>
+          <a href="https://codewithomesh.com" className="header-link">
+            More tools <ArrowUpRight size={15} />
+          </a>
+        </div>
       </header>
 
       <main className="page">
@@ -310,15 +316,19 @@ function App() {
                             <b>{formatBytes(output.blob.size)}</b>
                             <span>·</span>
                             {output.width} × {output.height}
-                            <span className={percent >= 0 ? "saved" : "larger"}>
-                              {percent >= 0 ? `−${percent}%` : `+${Math.abs(percent)}%`}
-                            </span>
+                            {output.keptOriginal ? (
+                              <span className="kept">Already optimized · original kept</span>
+                            ) : (
+                              <span className={percent >= 0 ? "saved" : "larger"}>
+                                {percent >= 0 ? `−${percent}%` : `+${Math.abs(percent)}%`}
+                              </span>
+                            )}
                           </div>
                         )}
                         {item.status === "error" && <div className="error-text">{item.error}</div>}
                         {item.status === "processing" && (
                           <div className="processing-text">
-                            <LoaderCircle size={13} /> Processing image…
+                            <LoaderCircle size={13} className="spin" /> Processing image…
                           </div>
                         )}
                         {item.status === "ready" && (
@@ -333,12 +343,7 @@ function App() {
                             onClick={() =>
                               downloadBlob(
                                 output.blob,
-                                safeOutputName(
-                                  item.file.name,
-                                  output.mimeType === "image/jpeg"
-                                    ? "jpg"
-                                    : output.mimeType.split("/")[1],
-                                ),
+                                safeOutputName(item.file.name, outputExtension(output.mimeType)),
                               )
                             }
                           >
@@ -553,7 +558,10 @@ function App() {
 
       <footer className="footer">
         <span>© {new Date().getFullYear()} Code with Omesh</span>
-        <span>Free tools. Built for everyone.</span>
+        <span>Useful tools. Simple solutions.</span>
+        <a href="https://codewithomesh.com">
+          codewithomesh.com <ArrowUpRight size={13} />
+        </a>
       </footer>
     </div>
   );

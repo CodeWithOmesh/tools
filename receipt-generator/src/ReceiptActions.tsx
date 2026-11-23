@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { pdf } from "@react-pdf/renderer";
 import { Download, LoaderCircle, Printer } from "lucide-react";
 import { useReceipt } from "./store";
-import ReceiptPdf from "./ReceiptPdf";
 import { validateReceipt } from "./receipt";
 import { calculate } from "./money";
 export default function ReceiptActions() {
@@ -31,7 +29,8 @@ export default function ReceiptActions() {
     setError("");
     setBusy(true);
     try {
-      const blob = await pdf(<ReceiptPdf receipt={r} />).toBlob(),
+      const { createReceiptPdf } = await import("./pdf");
+      const blob = await createReceiptPdf(r),
         url = URL.createObjectURL(blob),
         a = document.createElement("a");
       a.href = url;

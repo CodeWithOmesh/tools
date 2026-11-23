@@ -2,15 +2,23 @@ import { useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from "
 import {
   ArrowDownToLine,
   ArrowUpRight,
+  CalendarDays,
   Check,
   ChevronRight,
   ImagePlus,
   Link2,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
   QrCode,
   RotateCcw,
   ShieldCheck,
   Sparkles,
   Trash2,
+  Type,
+  UserRound,
+  Wifi,
 } from "lucide-react";
 import {
   buildQrPayload,
@@ -20,7 +28,24 @@ import {
   type QrContentType,
   type QrFields,
 } from "./types";
-import { renderQrPng, renderQrSvg, type RenderOptions } from "./qr";
+import {
+  contrastWarning as getContrastWarning,
+  renderQrPng,
+  renderQrSvg,
+  type RenderOptions,
+} from "./qr";
+
+const TYPE_ICONS: Record<QrContentType, ReactNode> = {
+  url: <Link2 size={16} />,
+  text: <Type size={16} />,
+  wifi: <Wifi size={16} />,
+  vcard: <UserRound size={16} />,
+  email: <Mail size={16} />,
+  phone: <Phone size={16} />,
+  whatsapp: <MessageCircle size={16} />,
+  location: <MapPin size={16} />,
+  event: <CalendarDays size={16} />,
+};
 
 const DRAFT_KEY = "cwo-qr-generator-draft-v1";
 const DEFAULT_OPTIONS: RenderOptions = {
@@ -114,8 +139,15 @@ function SelectField({
     </Field>
   );
 }
-function downloadFile(contents: string, filename: string, mime: string) {
-  const blob = new Blob([contents], { type: mime });
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, base64 = ""] = dataUrl.split(",");
+  const mime = /data:([^;]+)/.exec(header)?.[1] ?? "application/octet-stream";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return new Blob([bytes], { type: mime });
+}
+function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -258,15 +290,16 @@ export default function App() {
     event.target.value = "";
   };
 
+  const downloadName = sanitizeFilename(
+    type === "url" ? `${(fields.url ?? "").replace(/^https?:\/\//i, "")}-qr` : `${type}-qr-code`,
+  );
+  const contrastWarning = getContrastWarning(options.dark, options.light);
+
   const handlePng = async () => {
     try {
       setDownloadError("");
       const png = await renderQrPng(payload.value, options, logo);
-      downloadFile(
-        png,
-        `${sanitizeFilename(fields.url || fields.title || "qr-code")}.png`,
-        "image/png",
-      );
+      downloadBlob(dataUrlToBlob(png), `${downloadName}.png`);
     } catch (reason) {
       setDownloadError(
         reason instanceof Error ? reason.message : "Could not create the PNG image.",
@@ -277,11 +310,7 @@ export default function App() {
     try {
       setDownloadError("");
       const svg = await renderQrSvg(payload.value, options, logo);
-      downloadFile(
-        svg,
-        `${sanitizeFilename(fields.url || fields.title || "qr-code")}.svg`,
-        "image/svg+xml;charset=utf-8",
-      );
+      downloadBlob(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), `${downloadName}.svg`);
     } catch (reason) {
       setDownloadError(
         reason instanceof Error ? reason.message : "Could not create the SVG image.",
@@ -620,9 +649,7 @@ export default function App() {
                       className={type === item.id ? "type-option active" : "type-option"}
                       onClick={() => selectType(item.id)}
                     >
-                      <span className="type-icon">
-                        {item.id === "url" ? <Link2 size={16} /> : <QrCode size={16} />}
-                      </span>
+                      <span className="type-icon">{TYPE_ICONS[item.id]}</span>
                       <span>
                         <b>{item.label}</b>
                         <small>{item.description}</small>
@@ -634,7 +661,7 @@ export default function App() {
                 <div className="form-subsection">
                   <div className="subsection-heading">
                     <h3>{CONTENT_TYPES.find((item) => item.id === type)?.label} details</h3>
-                    <span>Required fields marked by validation</span>
+                    <span>The preview updates as you type</span>
                   </div>
                   {fieldForm()}
                 </div>
@@ -687,7 +714,7 @@ export default function App() {
                       ["#174c3c", "#ffffff"],
                       ["#123b72", "#ffffff"],
                       ["#5b2c83", "#ffffff"],
-                      ["#ffffff", "#111827"],
+                      ["#7c2d12", "#fff7ed"],
                     ].map(([dark, light]) => (
                       <button
                         type="button"
@@ -790,18 +817,6 @@ export default function App() {
                     <input type="file" accept="image/*" onChange={uploadLogo} hidden />
                   </label>
                 )}
-                {logo ? (
-                  <button
-                    type="button"
-                    className="text-button remove-logo"
-                    onClick={() => {
-                      setLogo("");
-                      setLogoName("");
-                    }}
-                  >
-                    Remove logo
-                  </button>
-                ) : null}
                 <p className="hint-line">
                   Adding a logo automatically selects High error correction. Use a simple logo, keep
                   it small, and test the downloaded code before printing.
@@ -846,6 +861,9 @@ export default function App() {
               </div>
             </div>
             {error ? <div className="error-message">{error}</div> : null}
+            {!error && contrastWarning ? (
+              <div className="error-message warning-message">{contrastWarning}</div>
+            ) : null}
             {downloadError ? <div className="error-message">{downloadError}</div> : null}
             <div className="download-actions">
               <button

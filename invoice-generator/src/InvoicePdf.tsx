@@ -1,5 +1,5 @@
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
-import { calculateInvoice, decimal, formatMoney } from "./money";
+import { calculateInvoice, decimal, formatMoneyForPdf as formatMoney } from "./money";
 import type { Invoice } from "./types";
 
 const styles = StyleSheet.create({
@@ -19,11 +19,15 @@ const styles = StyleSheet.create({
   },
   brand: { flexDirection: "row", alignItems: "center", gap: 12, maxWidth: "55%" },
   logo: { width: 54, height: 54, objectFit: "contain" },
-  business: { fontSize: 15, fontWeight: 700, marginBottom: 5 },
-  muted: { color: "#687386", lineHeight: 1.5 },
-  invoiceTitle: { fontSize: 29, letterSpacing: 1.5, color: "#141a24", textAlign: "right" },
-  meta: { marginTop: 8, textAlign: "right", color: "#687386", lineHeight: 1.7 },
+  business: { fontSize: 15, lineHeight: 1.25, fontWeight: 700, marginBottom: 5 },
+  muted: { color: "#687386", lineHeight: 1.4 },
+  heading: { alignItems: "flex-end" },
+  invoiceTitle: { fontSize: 26, lineHeight: 1.2, letterSpacing: 1.5, color: "#141a24" },
+  meta: { color: "#687386", lineHeight: 1.4 },
+  metaNumber: { marginTop: 6, marginBottom: 2, fontWeight: 700, color: "#444e5d" },
   goldRule: { height: 3, backgroundColor: "#e9a82e", marginBottom: 25 },
+  simpleRule: { height: 1, backgroundColor: "#a5aab2", marginBottom: 25 },
+  simpleHead: { backgroundColor: "#eef0f3", color: "#252d3a" },
   parties: { flexDirection: "row", justifyContent: "space-between", marginBottom: 30 },
   party: { width: "46%" },
   label: {
@@ -82,6 +86,9 @@ const styles = StyleSheet.create({
 
 export default function InvoicePdf({ invoice }: { invoice: Invoice }) {
   const totals = calculateInvoice(invoice);
+  // Mirror the template chosen in the on-screen preview.
+  const simple = invoice.template === "simple";
+  const headingFont = simple ? "Times-Roman" : "Helvetica";
   const date = (value: string) =>
     value
       ? new Date(`${value}T00:00:00`).toLocaleDateString("en", {
@@ -114,16 +121,14 @@ export default function InvoicePdf({ invoice }: { invoice: Invoice }) {
               ))}
             </View>
           </View>
-          <View>
-            <Text style={styles.invoiceTitle}>INVOICE</Text>
-            <Text style={styles.meta}>
-              No. {invoice.invoiceNumber || "—"}
-              {"\n"}Issued: {date(invoice.issueDate)}
-              {"\n"}Due: {date(invoice.dueDate)}
-            </Text>
+          <View style={styles.heading}>
+            <Text style={[styles.invoiceTitle, { fontFamily: headingFont }]}>INVOICE</Text>
+            <Text style={[styles.meta, styles.metaNumber]}>No. {invoice.invoiceNumber || "—"}</Text>
+            <Text style={styles.meta}>Issued: {date(invoice.issueDate)}</Text>
+            {invoice.dueDate ? <Text style={styles.meta}>Due: {date(invoice.dueDate)}</Text> : null}
           </View>
         </View>
-        <View style={styles.goldRule} />
+        <View style={simple ? styles.simpleRule : styles.goldRule} />
         <View style={styles.parties}>
           <View style={styles.party}>
             <Text style={styles.label}>BILL TO</Text>
@@ -141,14 +146,14 @@ export default function InvoicePdf({ invoice }: { invoice: Invoice }) {
           </View>
         </View>
         <View style={styles.table}>
-          <View style={styles.head}>
+          <View style={simple ? [styles.head, styles.simpleHead] : styles.head}>
             <Text style={styles.desc}>DESCRIPTION</Text>
             <Text style={styles.qty}>QTY</Text>
             <Text style={styles.rate}>UNIT PRICE</Text>
             <Text style={styles.amount}>AMOUNT</Text>
           </View>
           {invoice.items.map((item) => (
-            <View key={item.id} style={styles.row}>
+            <View key={item.id} style={styles.row} wrap={false}>
               <Text style={styles.desc}>{item.description || "—"}</Text>
               <Text style={styles.qty}>{item.quantity || "0"}</Text>
               <Text style={styles.rate}>{formatMoney(item.unitPrice, invoice.currency)}</Text>
@@ -161,16 +166,18 @@ export default function InvoicePdf({ invoice }: { invoice: Invoice }) {
             </View>
           ))}
         </View>
-        <View style={styles.summaryWrap}>
+        <View style={styles.summaryWrap} wrap={false}>
           <View style={styles.summary}>
             <View style={styles.totalRow}>
               <Text>Subtotal</Text>
               <Text>{formatMoney(totals.subtotal, invoice.currency)}</Text>
             </View>
-            <View style={styles.totalRow}>
-              <Text>Discount</Text>
-              <Text>−{formatMoney(totals.discount, invoice.currency)}</Text>
-            </View>
+            {totals.discount.gt(0) ? (
+              <View style={styles.totalRow}>
+                <Text>Discount</Text>
+                <Text>-{formatMoney(totals.discount, invoice.currency)}</Text>
+              </View>
+            ) : null}
             <View style={styles.totalRow}>
               <Text>{invoice.taxLabel || "Tax"}</Text>
               <Text>{formatMoney(totals.tax, invoice.currency)}</Text>
@@ -191,19 +198,19 @@ export default function InvoicePdf({ invoice }: { invoice: Invoice }) {
         </View>
         <View style={styles.footer}>
           {invoice.paymentDetails ? (
-            <View style={styles.block}>
+            <View style={styles.block} wrap={false}>
               <Text style={styles.footerTitle}>PAYMENT DETAILS</Text>
               <Text style={styles.note}>{invoice.paymentDetails}</Text>
             </View>
           ) : null}
           {invoice.notes ? (
-            <View style={styles.block}>
+            <View style={styles.block} wrap={false}>
               <Text style={styles.footerTitle}>NOTES</Text>
               <Text style={styles.note}>{invoice.notes}</Text>
             </View>
           ) : null}
           {invoice.terms ? (
-            <View style={styles.block}>
+            <View style={styles.block} wrap={false}>
               <Text style={styles.footerTitle}>TERMS & CONDITIONS</Text>
               <Text style={styles.note}>{invoice.terms}</Text>
             </View>

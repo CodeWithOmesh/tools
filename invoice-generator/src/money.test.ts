@@ -1,6 +1,58 @@
 import { describe, expect, it } from "vitest";
-import { calculateInvoice, currencyDigits, formatMoney } from "./money";
-import { createDefaultInvoice } from "./types";
+import { calculateInvoice, currencyDigits, formatMoney, formatMoneyForPdf } from "./money";
+import { createDefaultInvoice, validateInvoice } from "./types";
+
+describe("PDF money formatting", () => {
+  it("keeps symbols the PDF font can draw", () => {
+    expect(formatMoneyForPdf("1234.5", "USD")).toBe("$1,234.50");
+    expect(formatMoneyForPdf("1234.5", "EUR")).toBe("€1,234.50");
+    expect(formatMoneyForPdf("1234.5", "GBP")).toBe("£1,234.50");
+  });
+
+  it("falls back to the ISO code for symbols the PDF font cannot draw", () => {
+    for (const currency of ["INR", "PHP", "KRW", "VND", "ILS"]) {
+      const formatted = formatMoneyForPdf("1234.5", currency);
+      expect(formatted.startsWith(currency)).toBe(true);
+    }
+  });
+});
+
+describe("invoice validation", () => {
+  const completeInvoice = () => {
+    const invoice = createDefaultInvoice();
+    invoice.seller.name = "Acme Studio";
+    invoice.client.name = "Globex";
+    invoice.items = [{ id: "1", description: "Design", quantity: "1", unitPrice: "100" }];
+    return invoice;
+  };
+
+  it("accepts a complete invoice", () => {
+    expect(validateInvoice(completeInvoice())).toBeNull();
+  });
+
+  it("requires business and client names", () => {
+    const invoice = completeInvoice();
+    invoice.seller.name = " ";
+    expect(validateInvoice(invoice)).toContain("business name");
+    invoice.seller.name = "Acme";
+    invoice.client.name = "";
+    expect(validateInvoice(invoice)).toContain("client");
+  });
+
+  it("rejects a due date before the issue date", () => {
+    const invoice = completeInvoice();
+    invoice.issueDate = "2026-05-10";
+    invoice.dueDate = "2026-05-01";
+    expect(validateInvoice(invoice)).toContain("due date");
+  });
+
+  it("rejects percentage discounts over 100%", () => {
+    const invoice = completeInvoice();
+    invoice.discountType = "percentage";
+    invoice.discountValue = "120";
+    expect(validateInvoice(invoice)).toContain("100%");
+  });
+});
 
 describe("invoice calculations", () => {
   it("applies a fixed discount before tax", () => {

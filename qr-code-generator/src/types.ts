@@ -115,12 +115,7 @@ export function buildQrPayload(type: QrContentType, fields: QrFields): string {
       const first = escapeVCard(required(fields, "firstName", "a first name"));
       const last = escapeVCard(fields.lastName ?? "");
       const fullName = [first, last].filter(Boolean).join(" ");
-      const lines = [
-        "BEGIN:VCARD",
-        "VERSION:3.0",
-        `N:${escapeVCard(last)};${escapeVCard(first)};;;`,
-        `FN:${fullName}`,
-      ];
+      const lines = ["BEGIN:VCARD", "VERSION:3.0", `N:${last};${first};;;`, `FN:${fullName}`];
       if (fields.organization?.trim()) lines.push(`ORG:${escapeVCard(fields.organization)}`);
       if (fields.phone?.trim()) lines.push(`TEL;TYPE=CELL:${escapeVCard(fields.phone)}`);
       if (fields.email?.trim()) lines.push(`EMAIL:${escapeVCard(fields.email)}`);
@@ -132,11 +127,13 @@ export function buildQrPayload(type: QrContentType, fields: QrFields): string {
       const email = required(fields, "email", "an email address");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
         throw new Error("Enter a valid email address.");
-      const params = new URLSearchParams();
-      if (fields.subject?.trim()) params.set("subject", fields.subject.trim());
-      if (fields.message?.trim()) params.set("body", fields.message.trim());
-      const query = params.toString();
-      return `mailto:${email}${query ? `?${query}` : ""}`;
+      // mailto: (RFC 6068) needs percent-encoding; URLSearchParams would turn spaces into "+",
+      // which most mail apps display literally.
+      const params: string[] = [];
+      if (fields.subject?.trim())
+        params.push(`subject=${encodeURIComponent(fields.subject.trim())}`);
+      if (fields.message?.trim()) params.push(`body=${encodeURIComponent(fields.message.trim())}`);
+      return `mailto:${email}${params.length ? `?${params.join("&")}` : ""}`;
     }
     case "phone": {
       const phone = required(fields, "phone", "a phone number").replace(/[\s().-]/g, "");

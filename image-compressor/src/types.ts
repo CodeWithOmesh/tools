@@ -87,6 +87,19 @@ export function savingsPercent(originalBytes: number, outputBytes: number): numb
   return Math.round((1 - outputBytes / originalBytes) * 1000) / 10;
 }
 
+/**
+ * A compressor should never hand back a bigger file than it was given. When the format and
+ * dimensions are unchanged, the original bytes are a valid result, so prefer them if smaller.
+ */
+export function shouldKeepOriginal(input: {
+  originalBytes: number;
+  outputBytes: number;
+  sameFormat: boolean;
+  resized: boolean;
+}): boolean {
+  return input.sameFormat && !input.resized && input.outputBytes >= input.originalBytes;
+}
+
 export function safeOutputName(name: string, extension: string): string {
   const stem =
     name

@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "../dist/tools/invoice-generator",
       emptyOutDir: false,
+      // The PDF renderer (~1.2 MB) is split into its own chunk and only loaded on download.
+      chunkSizeWarningLimit: 1400,
     },
   };
 });

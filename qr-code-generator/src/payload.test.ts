@@ -45,7 +45,13 @@ describe("QR payload builder", () => {
       subject: "Quick question",
       message: "Hello there",
     });
-    expect(payload).toBe("mailto:hello@example.com?subject=Quick+question&body=Hello+there");
+    expect(payload).toBe("mailto:hello@example.com?subject=Quick%20question&body=Hello%20there");
+  });
+
+  it("escapes vCard names exactly once", () => {
+    const payload = buildQrPayload("vcard", { firstName: "Ann, Jr", lastName: "O;Brien" });
+    expect(payload).toContain("N:O\\;Brien;Ann\\, Jr;;;");
+    expect(payload).toContain("FN:Ann\\, Jr O\\;Brien");
   });
 
   it("requires a country-code style WhatsApp number", () => {

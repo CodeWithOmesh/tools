@@ -7,6 +7,7 @@ import {
   resizedDimensions,
   safeOutputName,
   savingsPercent,
+  shouldKeepOriginal,
 } from "./types";
 
 describe("image compressor utilities", () => {
@@ -52,5 +53,31 @@ describe("image compressor utilities", () => {
   it("creates a safe output filename", () => {
     expect(safeOutputName("my holiday photo.jpg", "webp")).toBe("my-holiday-photo-compressed.webp");
     expect(safeOutputName("!!!.png", "png")).toBe("image-compressed.png");
+  });
+
+  it("keeps the original when re-encoding would not make it smaller", () => {
+    const base = { originalBytes: 1000, sameFormat: true, resized: false };
+    expect(shouldKeepOriginal({ ...base, outputBytes: 1200 })).toBe(true);
+    expect(shouldKeepOriginal({ ...base, outputBytes: 1000 })).toBe(true);
+    expect(shouldKeepOriginal({ ...base, outputBytes: 800 })).toBe(false);
+  });
+
+  it("returns the converted or resized output even when it is larger", () => {
+    expect(
+      shouldKeepOriginal({
+        originalBytes: 1000,
+        outputBytes: 1200,
+        sameFormat: false,
+        resized: false,
+      }),
+    ).toBe(false);
+    expect(
+      shouldKeepOriginal({
+        originalBytes: 1000,
+        outputBytes: 1200,
+        sameFormat: true,
+        resized: true,
+      }),
+    ).toBe(false);
   });
 });
