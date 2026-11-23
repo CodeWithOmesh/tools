@@ -22,7 +22,7 @@ function Header() {
           <i />
           Free tool
         </span>
-        <a href="https://codewithomesh.com" className="header-link">
+        <a href="https://codewithomesh.com/tools/" className="header-link">
           More tools <ArrowUpRight size={15} />
         </a>
       </div>
