@@ -53,30 +53,31 @@ a {
   gap: 12px;
 }
 .brand-mark {
-  width: 39px;
-  height: 39px;
-  border-radius: 11px;
-  background: linear-gradient(145deg, #f8c66d, #c88723);
-  color: #17130c;
-  display: grid;
-  place-items: center;
-  font: 800 13px Manrope;
-  box-shadow: 0 4px 22px #d99b2930;
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 }
 .brand-name {
-  font: 700 17px Manrope;
-  letter-spacing: -0.5px;
+  font:
+    700 16px Manrope,
+    sans-serif;
+  letter-spacing: -0.4px;
   line-height: 1.12;
 }
 .brand-name b {
-  font-weight: 500;
+  color: #ffb547;
+  font-weight: inherit;
 }
 .brand-name small {
   display: block;
+  margin-top: 4px;
   color: #7f8999;
-  font: 600 9px "DM Sans";
+  font:
+    600 9px "DM Sans",
+    sans-serif;
   letter-spacing: 1.8px;
-  margin-top: 5px;
 }
 .header-right {
   display: flex;

@@ -550,9 +550,9 @@ export default function App() {
     <div className="app-shell">
       <header className="site-header">
         <a className="brand" href="https://codewithomesh.com">
-          <span className="brand-mark">&lt;O/&gt;</span>
+          <img className="brand-mark" src={`${import.meta.env.BASE_URL}logo-icon.svg`} alt="" width={40} height={40} />
           <span className="brand-name">
-            Code <b>with Omesh</b>
+            Code with <b>Omesh</b>
             <small>FREE ONLINE TOOLS</small>
           </span>
         </a>
@@ -561,7 +561,7 @@ export default function App() {
             <i />
             Free tool
           </span>
-          <a href="https://codewithomesh.com" className="header-link">
+          <a href="https://codewithomesh.com/tools/" className="header-link">
             More tools <ArrowUpRight size={15} />
           </a>
         </div>

@@ -56,28 +56,31 @@ a {
   gap: 12px;
 }
 .brand-mark {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 40px;
   height: 40px;
-  border: 1px solid #f5b84b88;
-  border-radius: 11px;
-  color: var(--gold);
-  font: 800 13px "Manrope";
+  border-radius: 10px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 }
 .brand-name {
-  font: 700 14px "Manrope";
-  letter-spacing: -0.3px;
+  font:
+    700 16px Manrope,
+    sans-serif;
+  letter-spacing: -0.4px;
+  line-height: 1.12;
 }
 .brand-name b {
-  color: var(--gold);
+  color: #ffb547;
+  font-weight: inherit;
 }
 .brand-name small {
   display: block;
-  margin-top: 3px;
+  margin-top: 4px;
   color: #7f8999;
-  font-size: 8px;
-  letter-spacing: 2px;
+  font:
+    600 9px "DM Sans",
+    sans-serif;
+  letter-spacing: 1.8px;
 }
 .header-right {
   display: flex;
