@@ -37,10 +37,53 @@ function downloadBlob(blob: Blob, filename: string) {
 }
 
 const currencyCodes = [
-  "AED", "AUD", "BDT", "BHD", "BRL", "CAD", "CHF", "CNY", "DKK", "EGP", "EUR", "GBP",
-  "HKD", "IDR", "ILS", "INR", "IQD", "JPY", "KES", "KRW", "KWD", "LKR", "MAD", "MUR",
-  "MXN", "MYR", "NGN", "NOK", "NPR", "NZD", "OMR", "PHP", "PKR", "PLN", "QAR", "RON",
-  "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "TZS", "UAH", "USD", "VND", "ZAR",
+  "AED",
+  "AUD",
+  "BDT",
+  "BHD",
+  "BRL",
+  "CAD",
+  "CHF",
+  "CNY",
+  "DKK",
+  "EGP",
+  "EUR",
+  "GBP",
+  "HKD",
+  "IDR",
+  "ILS",
+  "INR",
+  "IQD",
+  "JPY",
+  "KES",
+  "KRW",
+  "KWD",
+  "LKR",
+  "MAD",
+  "MUR",
+  "MXN",
+  "MYR",
+  "NGN",
+  "NOK",
+  "NPR",
+  "NZD",
+  "OMR",
+  "PHP",
+  "PKR",
+  "PLN",
+  "QAR",
+  "RON",
+  "SAR",
+  "SEK",
+  "SGD",
+  "THB",
+  "TRY",
+  "TWD",
+  "TZS",
+  "UAH",
+  "USD",
+  "VND",
+  "ZAR",
 ];
 const makeId = () => `item-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -434,7 +477,9 @@ export default function App() {
     patch("items", items);
   };
   const reset = () => {
-    if (!window.confirm("Start a new quotation? Your current draft in this browser will be cleared."))
+    if (
+      !window.confirm("Start a new quotation? Your current draft in this browser will be cleared.")
+    )
       return;
     localStorage.removeItem(DRAFT_KEY);
     setActionError("");
@@ -548,7 +593,10 @@ export default function App() {
                     placeholder="QUO-1001"
                   />
                   <Field label="Currency">
-                    <select value={quotation.currency} onChange={(e) => patch("currency", e.target.value)}>
+                    <select
+                      value={quotation.currency}
+                      onChange={(e) => patch("currency", e.target.value)}
+                    >
                       {currencyCodes.map((code) => (
                         <option key={code} value={code}>
                           {code} —{" "}

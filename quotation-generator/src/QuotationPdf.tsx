@@ -126,9 +126,7 @@ export default function QuotationPdf({ quotation }: { quotation: Quotation }) {
               <Image src={quotation.business.logoDataUrl} style={styles.logo} />
             ) : null}
             <View>
-              <Text style={styles.business}>
-                {quotation.business.name || "Your business"}
-              </Text>
+              <Text style={styles.business}>{quotation.business.name || "Your business"}</Text>
               {partyLines(quotation.business).map((line, index) => (
                 <Text key={index} style={styles.muted}>
                   {line}
@@ -138,9 +136,7 @@ export default function QuotationPdf({ quotation }: { quotation: Quotation }) {
           </View>
           <View style={styles.heading}>
             <Text style={[styles.quoteTitle, { fontFamily: headingFont }]}>QUOTATION</Text>
-            <Text style={[styles.meta, styles.metaNumber]}>
-              No. {quotation.quoteNumber || "—"}
-            </Text>
+            <Text style={[styles.meta, styles.metaNumber]}>No. {quotation.quoteNumber || "—"}</Text>
             <Text style={styles.meta}>Issued: {dateLabel(quotation.issueDate)}</Text>
             <Text style={styles.meta}>Valid until: {dateLabel(quotation.validUntil)}</Text>
           </View>
