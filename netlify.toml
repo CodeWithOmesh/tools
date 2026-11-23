@@ -1,0 +1,46 @@
+[build]
+command = "npm run build"
+publish = "dist"
+
+[build.environment]
+NODE_VERSION = "22"
+
+[[redirects]]
+from = "/tools/receipt-generator"
+to = "/tools/receipt-generator/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/receipt-generator/*"
+to = "/tools/receipt-generator/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/invoice-generator"
+to = "/tools/invoice-generator/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/invoice-generator/*"
+to = "/tools/invoice-generator/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/qr-code-generator"
+to = "/tools/qr-code-generator/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/qr-code-generator/*"
+to = "/tools/qr-code-generator/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/image-compressor"
+to = "/tools/image-compressor/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/image-compressor/*"
+to = "/tools/image-compressor/index.html"
+status = 200

@@ -1,0 +1,155 @@
+import { useMemo, useState } from "react";
+import { Check, ChevronDown, Search } from "lucide-react";
+const fallback = [
+  "AED",
+  "ARS",
+  "AUD",
+  "BDT",
+  "BHD",
+  "BRL",
+  "CAD",
+  "CHF",
+  "CLP",
+  "CNY",
+  "COP",
+  "CZK",
+  "DKK",
+  "EGP",
+  "EUR",
+  "GBP",
+  "GHS",
+  "HKD",
+  "HUF",
+  "IDR",
+  "ILS",
+  "INR",
+  "IQD",
+  "ISK",
+  "JOD",
+  "JPY",
+  "KES",
+  "KRW",
+  "KWD",
+  "LKR",
+  "MAD",
+  "MUR",
+  "MXN",
+  "MYR",
+  "NGN",
+  "NOK",
+  "NPR",
+  "NZD",
+  "OMR",
+  "PEN",
+  "PHP",
+  "PKR",
+  "PLN",
+  "QAR",
+  "RON",
+  "RUB",
+  "SAR",
+  "SEK",
+  "SGD",
+  "THB",
+  "TND",
+  "TRY",
+  "TWD",
+  "TZS",
+  "UAH",
+  "UGX",
+  "USD",
+  "UYU",
+  "VND",
+  "ZAR",
+];
+const supported = (Intl as unknown as { supportedValuesOf?: (key: "currency") => string[] })
+  .supportedValuesOf;
+const codes = (supported ? supported("currency") : fallback)
+  .filter((c) => /^[A-Z]{3}$/.test(c))
+  .sort();
+function name(code: string) {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "currency" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+export default function CurrencySelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [query, setQuery] = useState(""),
+    [open, setOpen] = useState(false);
+  const options = useMemo(
+    () =>
+      codes
+        .filter(
+          (c) =>
+            !query ||
+            c.toLowerCase().includes(query.toLowerCase()) ||
+            name(c).toLowerCase().includes(query.toLowerCase()),
+        )
+        .slice(0, 75),
+    [query],
+  );
+  return (
+    <div className="currency-select">
+      <button
+        type="button"
+        className="select-trigger"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span>
+          <b>{value}</b>
+          <small>{name(value)}</small>
+        </span>
+        <ChevronDown size={15} />
+      </button>
+      {open && (
+        <>
+          <div className="currency-menu">
+            <div className="currency-search">
+              <Search size={14} />
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search currency or code"
+              />
+            </div>
+            <div className="currency-options">
+              {options.map((code) => (
+                <button
+                  type="button"
+                  key={code}
+                  onClick={() => {
+                    onChange(code);
+                    setOpen(false);
+                    setQuery("");
+                  }}
+                >
+                  <span>
+                    <b>{code}</b>
+                    <small>{name(code)}</small>
+                  </span>
+                  {code === value && <Check size={15} />}
+                </button>
+              ))}
+              {!options.length && <p>No currencies found.</p>}
+            </div>
+          </div>
+          <button
+            type="button"
+            className="menu-dismiss"
+            aria-label="Close currency menu"
+            onClick={() => setOpen(false)}
+          />
+        </>
+      )}
+    </div>
+  );
+}

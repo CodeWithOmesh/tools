@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/currencyselect.tsx","./src/receiptactions.tsx","./src/receipteditor.tsx","./src/receiptpdf.tsx","./src/receiptpreview.tsx","./src/main.tsx","./src/money.test.ts","./src/money.ts","./src/pdf.tsx","./src/receipt.ts","./src/store.ts","./src/types.ts"],"version":"5.7.3"}
