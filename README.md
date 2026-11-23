@@ -11,6 +11,7 @@ Each tool lives in its own top-level directory and owns its application code, de
 ├── receipt-generator/
 ├── invoice-generator/
 ├── qr-code-generator/
+├── image-compressor/
 ├── scripts/
 │   └── run-tools.mjs
 ├── .github/workflows/
@@ -26,6 +27,7 @@ Add future tools as sibling folders such as `image-compressor/`, `word-counter/`
 | Receipt Generator | `/tools/receipt-generator/` | `receipt-generator/` |
 | Invoice Generator | `/tools/invoice-generator/` | `invoice-generator/` |
 | QR Code Generator | `/tools/qr-code-generator/` | `qr-code-generator/` |
+| Image Compressor | `/tools/image-compressor/` | `image-compressor/` |
 
 ## Run one tool locally
 
@@ -35,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Change to `receipt-generator` or `invoice-generator` to run the other tools.
+Change to `receipt-generator`, `invoice-generator` or `image-compressor` to run the other tools.
 
 ## Build and verify all tools
 
