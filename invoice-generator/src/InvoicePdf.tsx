@@ -198,20 +198,26 @@ export default function InvoicePdf({ invoice }: { invoice: Invoice }) {
         </View>
         <View style={styles.footer}>
           {invoice.paymentDetails ? (
-            <View style={styles.block} wrap={false}>
-              <Text style={styles.footerTitle}>PAYMENT DETAILS</Text>
+            <View style={styles.block}>
+              <Text style={styles.footerTitle} minPresenceAhead={30}>
+                PAYMENT DETAILS
+              </Text>
               <Text style={styles.note}>{invoice.paymentDetails}</Text>
             </View>
           ) : null}
           {invoice.notes ? (
-            <View style={styles.block} wrap={false}>
-              <Text style={styles.footerTitle}>NOTES</Text>
+            <View style={styles.block}>
+              <Text style={styles.footerTitle} minPresenceAhead={30}>
+                NOTES
+              </Text>
               <Text style={styles.note}>{invoice.notes}</Text>
             </View>
           ) : null}
           {invoice.terms ? (
-            <View style={styles.block} wrap={false}>
-              <Text style={styles.footerTitle}>TERMS & CONDITIONS</Text>
+            <View style={styles.block}>
+              <Text style={styles.footerTitle} minPresenceAhead={30}>
+                TERMS & CONDITIONS
+              </Text>
               <Text style={styles.note}>{invoice.terms}</Text>
             </View>
           ) : null}

@@ -17,7 +17,8 @@ export default function ReceiptPdf({ receipt: r }: { receipt: Receipt }) {
   // grows to fit the content instead of spilling onto extra pages.
   const size = r.paperSize === "a4" ? "A4" : { width: THERMAL_WIDTH[r.paperSize] };
   const pad = thermal ? (r.paperSize === "thermal-58" ? 10 : 15) : 42;
-  // On A4, keep rows and boxes from splitting across pages. Thermal pages never paginate.
+  // On A4, keep item rows and the totals block from splitting across pages.
+  // Thermal pages never paginate.
   const keepTogether = thermal ? {} : { wrap: false };
   const accentColor = r.template === "professional" ? "#bd8429" : "#202938";
 
@@ -246,14 +247,18 @@ export default function ReceiptPdf({ receipt: r }: { receipt: Receipt }) {
         </View>
 
         {r.notes ? (
-          <View style={s.note} {...keepTogether}>
-            <Text style={s.label}>NOTES</Text>
+          <View style={s.note}>
+            <Text style={s.label} minPresenceAhead={30}>
+              NOTES
+            </Text>
             <Text>{r.notes}</Text>
           </View>
         ) : null}
         {r.terms ? (
-          <View style={s.note} {...keepTogether}>
-            <Text style={s.label}>TERMS & CONDITIONS</Text>
+          <View style={s.note}>
+            <Text style={s.label} minPresenceAhead={30}>
+              TERMS & CONDITIONS
+            </Text>
             <Text>{r.terms}</Text>
           </View>
         ) : null}

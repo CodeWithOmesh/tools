@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   rate: { width: 82, textAlign: "right" },
   amount: { width: 92, textAlign: "right" },
   summaryWrap: { flexDirection: "row", justifyContent: "flex-end", marginTop: 18 },
-  summary: { width: 220 },
+  summary: { width: 250 },
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -72,7 +72,8 @@ const styles = StyleSheet.create({
     marginTop: 7,
     borderTopWidth: 1,
     borderTopColor: "#cdd4de",
-    fontSize: 13,
+    gap: 12,
+    fontSize: 12,
     fontWeight: 700,
     color: "#141a24",
   },
@@ -113,6 +114,14 @@ export default function QuotationPdf({ quotation }: { quotation: Quotation }) {
   const totals = calculateQuotation(quotation);
   const simple = quotation.template === "simple";
   const headingFont = simple ? "Times-Roman" : "Helvetica";
+  const validDays =
+    quotation.issueDate && quotation.validUntil
+      ? Math.round(
+          (Date.parse(`${quotation.validUntil}T00:00:00Z`) -
+            Date.parse(`${quotation.issueDate}T00:00:00Z`)) /
+            86_400_000,
+        )
+      : null;
 
   return (
     <Document
@@ -157,8 +166,11 @@ export default function QuotationPdf({ quotation }: { quotation: Quotation }) {
           <View style={styles.party}>
             <Text style={styles.label}>QUOTE DETAILS</Text>
             <Text style={styles.partyName}>Currency: {quotation.currency}</Text>
-            <Text style={styles.muted}>Issue date: {dateLabel(quotation.issueDate)}</Text>
-            <Text style={styles.muted}>Valid until: {dateLabel(quotation.validUntil)}</Text>
+            {validDays !== null ? (
+              <Text style={styles.muted}>
+                Valid for {validDays} {validDays === 1 ? "day" : "days"} from the issue date
+              </Text>
+            ) : null}
           </View>
         </View>
 
@@ -210,20 +222,26 @@ export default function QuotationPdf({ quotation }: { quotation: Quotation }) {
 
         <View style={styles.footer}>
           {quotation.scopeOfWork ? (
-            <View style={styles.block} wrap={false}>
-              <Text style={styles.footerTitle}>SCOPE OF WORK</Text>
+            <View style={styles.block}>
+              <Text style={styles.footerTitle} minPresenceAhead={30}>
+                SCOPE OF WORK
+              </Text>
               <Text style={styles.note}>{quotation.scopeOfWork}</Text>
             </View>
           ) : null}
           {quotation.terms ? (
-            <View style={styles.block} wrap={false}>
-              <Text style={styles.footerTitle}>TERMS & CONDITIONS</Text>
+            <View style={styles.block}>
+              <Text style={styles.footerTitle} minPresenceAhead={30}>
+                TERMS & CONDITIONS
+              </Text>
               <Text style={styles.note}>{quotation.terms}</Text>
             </View>
           ) : null}
           {quotation.notes ? (
-            <View style={styles.block} wrap={false}>
-              <Text style={styles.footerTitle}>NOTES</Text>
+            <View style={styles.block}>
+              <Text style={styles.footerTitle} minPresenceAhead={30}>
+                NOTES
+              </Text>
               <Text style={styles.note}>{quotation.notes}</Text>
             </View>
           ) : null}

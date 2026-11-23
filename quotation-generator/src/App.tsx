@@ -481,7 +481,11 @@ export default function App() {
       !window.confirm("Start a new quotation? Your current draft in this browser will be cleared.")
     )
       return;
-    localStorage.removeItem(DRAFT_KEY);
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* Browser storage is optional (it can be blocked in private or locked-down browsers). */
+    }
     setActionError("");
     setQuotation(createDefaultQuotation());
   };
