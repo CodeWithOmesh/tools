@@ -1,2 +1,204 @@
-import {Document,Image,Page,StyleSheet,Text,View} from "@react-pdf/renderer";import type {Receipt} from "./types";import {calculate,dec,money} from "./money";
-export default function ReceiptPdf({receipt:r}:{receipt:Receipt}){const t=calculate(r),thermal=r.paperSize!=="a4",w=r.paperSize==="thermal-58"?164:227,h=Math.max(480,430+r.items.length*40+(r.notes.length+r.terms.length)/2),size:"A4"|[number,number]=thermal?[w,h]:"A4",pad=thermal?(r.paperSize==="thermal-58"?10:15):42;const s=StyleSheet.create({page:{padding:pad,fontSize:thermal?8:9,color:"#202938",fontFamily:"Helvetica",lineHeight:1.4},top:{flexDirection:thermal?"column":"row",justifyContent:"space-between",alignItems:thermal?"center":"flex-start",marginBottom:14},logo:{width:44,height:44,objectFit:"contain",marginBottom:6},business:{flex:1,textAlign:thermal?"center":"left"},name:{fontSize:thermal?12:16,fontFamily:"Helvetica-Bold",marginBottom:3},muted:{color:"#687386",fontSize:7,marginTop:2},title:{fontSize:thermal?10:16,fontFamily:"Helvetica-Bold",textAlign:thermal?"center":"right"},number:{fontSize:8,color:"#687386",textAlign:thermal?"center":"right",marginTop:3},accent:{height:3,backgroundColor:"#d89a2b",marginBottom:13},info:{flexDirection:"row",flexWrap:"wrap",borderTopWidth:1,borderBottomWidth:1,borderColor:"#e5e9ef",paddingVertical:9,marginBottom:13},infoCell:{width:thermal?"100%":"50%",marginBottom:5},label:{fontSize:6,color:"#687386",letterSpacing:.5,marginBottom:2},value:{fontSize:8,fontFamily:"Helvetica-Bold"},thead:{flexDirection:"row",padding:6,backgroundColor:r.template==="professional"?"#18283d":"#f0f2f5",color:r.template==="professional"?"#fff":"#202938"},th:{fontSize:7,fontFamily:"Helvetica-Bold"},desc:{flex:1},qty:{width:thermal?24:42,textAlign:"right"},price:{width:thermal?48:75,textAlign:"right"},amt:{width:thermal?48:80,textAlign:"right"},row:{flexDirection:"row",paddingVertical:7,borderBottomWidth:1,borderColor:"#e5e9ef"},cell:{fontSize:7},bottom:{flexDirection:thermal?"column":"row",justifyContent:"space-between",marginTop:13},payment:{flex:1,marginBottom:thermal?12:0},totals:{width:thermal?"100%":"48%"},line:{flexDirection:"row",justifyContent:"space-between",paddingVertical:3},totalLine:{borderTopWidth:1,borderColor:"#e5e9ef",marginTop:4,paddingTop:7},grand:{fontSize:thermal?11:13,fontFamily:"Helvetica-Bold",color:r.template==="professional"?"#bd8429":"#202938"},note:{marginTop:12,padding:8,backgroundColor:"#f3f5f7",fontSize:7},thank:{marginTop:18,textAlign:"center",fontSize:9,fontFamily:"Helvetica-Bold"},foot:{marginTop:8,textAlign:"center",color:"#8791a0",fontSize:6}});const method=r.paymentMethod.replaceAll("_"," ").replace(/\b\w/g,c=>c.toUpperCase());return <Document title={"Receipt "+r.receiptNumber} author="Code with Omesh"><Page size={size} style={s.page}><View style={s.top}><View style={s.business}>{r.business.logoDataUrl&&<Image src={r.business.logoDataUrl} style={s.logo}/>}<Text style={s.name}>{r.business.name||"Your Business Name"}</Text>{r.business.address&&<Text style={s.muted}>{r.business.address}</Text>}<Text style={s.muted}>{[r.business.phone,r.business.email,r.business.website].filter(Boolean).join(" · ")}</Text>{r.business.taxNumber&&<Text style={s.muted}>Tax ID: {r.business.taxNumber}</Text>}</View><View><Text style={s.title}>PAYMENT RECEIPT</Text><Text style={s.number}>{r.receiptNumber}</Text></View></View>{r.template==="professional"&&<View style={s.accent}/>}<View style={s.info}><View style={s.infoCell}><Text style={s.label}>RECEIPT DATE</Text><Text style={s.value}>{r.date}{r.time?" · "+r.time:""}</Text></View><View style={s.infoCell}><Text style={s.label}>PAYMENT STATUS</Text><Text style={s.value}>{t.status.toUpperCase()}</Text></View>{r.customer.name&&<View style={s.infoCell}><Text style={s.label}>RECEIVED FROM</Text><Text style={s.value}>{r.customer.name}</Text><Text style={s.muted}>{r.customer.address}</Text></View>}{(r.customer.phone||r.customer.email)&&<View style={s.infoCell}><Text style={s.label}>CUSTOMER CONTACT</Text><Text style={s.value}>{[r.customer.phone,r.customer.email].filter(Boolean).join(" · ")}</Text></View>}</View><View style={s.thead}><Text style={[s.th,s.desc]}>Description</Text><Text style={[s.th,s.qty]}>Qty</Text><Text style={[s.th,s.price]}>Price</Text><Text style={[s.th,s.amt]}>Amount</Text></View>{r.items.map(i=><View style={s.row} key={i.id}><Text style={[s.cell,s.desc]}>{i.description||"Item"}</Text><Text style={[s.cell,s.qty]}>{i.quantity}</Text><Text style={[s.cell,s.price]}>{money(i.unitPrice||0,r.currency)}</Text><Text style={[s.cell,s.amt]}>{money(dec(i.quantity||0).times(dec(i.unitPrice||0)),r.currency)}</Text></View>)}<View style={s.bottom}><View style={s.payment}><Text style={s.label}>PAYMENT METHOD</Text><Text style={s.value}>{method}</Text>{r.transactionReference&&<Text style={s.muted}>Reference: {r.transactionReference}</Text>}</View><View style={s.totals}><View style={s.line}><Text>Subtotal</Text><Text>{money(t.subtotal,r.currency)}</Text></View>{t.discount.gt(0)&&<View style={s.line}><Text>Discount</Text><Text>-{money(t.discount,r.currency)}</Text></View>}{t.tax.gt(0)&&<View style={s.line}><Text>{r.tax.label||"Tax"}</Text><Text>{money(t.tax,r.currency)}</Text></View>}<View style={[s.line,s.totalLine]}><Text style={s.grand}>Total</Text><Text style={s.grand}>{money(t.total,r.currency)}</Text></View><View style={s.line}><Text>Amount paid</Text><Text>{money(t.amountPaid,r.currency)}</Text></View><View style={s.line}><Text>Balance due</Text><Text>{money(t.balanceDue,r.currency)}</Text></View></View></View>{r.notes&&<View style={s.note}><Text style={s.label}>NOTES</Text><Text>{r.notes}</Text></View>}{r.terms&&<View style={s.note}><Text style={s.label}>TERMS & CONDITIONS</Text><Text>{r.terms}</Text></View>}<Text style={s.thank}>{r.footer||"Thank you for your business!"}</Text><Text style={s.foot}>Created with Code with Omesh · codewithomesh.com</Text></Page></Document>}
+import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import type { Receipt } from "./types";
+import { calculate, dec, money } from "./money";
+export default function ReceiptPdf({ receipt: r }: { receipt: Receipt }) {
+  const t = calculate(r),
+    thermal = r.paperSize !== "a4",
+    w = r.paperSize === "thermal-58" ? 164 : 227,
+    h = Math.max(480, 430 + r.items.length * 40 + (r.notes.length + r.terms.length) / 2),
+    size: "A4" | [number, number] = thermal ? [w, h] : "A4",
+    pad = thermal ? (r.paperSize === "thermal-58" ? 10 : 15) : 42;
+  const s = StyleSheet.create({
+    page: {
+      padding: pad,
+      fontSize: thermal ? 8 : 9,
+      color: "#202938",
+      fontFamily: "Helvetica",
+      lineHeight: 1.4,
+    },
+    top: {
+      flexDirection: thermal ? "column" : "row",
+      justifyContent: "space-between",
+      alignItems: thermal ? "center" : "flex-start",
+      marginBottom: 14,
+    },
+    logo: { width: 44, height: 44, objectFit: "contain", marginBottom: 6 },
+    business: { flex: 1, textAlign: thermal ? "center" : "left" },
+    name: { fontSize: thermal ? 12 : 16, fontFamily: "Helvetica-Bold", marginBottom: 3 },
+    muted: { color: "#687386", fontSize: 7, marginTop: 2 },
+    title: {
+      fontSize: thermal ? 10 : 16,
+      fontFamily: "Helvetica-Bold",
+      textAlign: thermal ? "center" : "right",
+    },
+    number: {
+      fontSize: 8,
+      color: "#687386",
+      textAlign: thermal ? "center" : "right",
+      marginTop: 3,
+    },
+    accent: { height: 3, backgroundColor: "#d89a2b", marginBottom: 13 },
+    info: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: "#e5e9ef",
+      paddingVertical: 9,
+      marginBottom: 13,
+    },
+    infoCell: { width: thermal ? "100%" : "50%", marginBottom: 5 },
+    label: { fontSize: 6, color: "#687386", letterSpacing: 0.5, marginBottom: 2 },
+    value: { fontSize: 8, fontFamily: "Helvetica-Bold" },
+    thead: {
+      flexDirection: "row",
+      padding: 6,
+      backgroundColor: r.template === "professional" ? "#18283d" : "#f0f2f5",
+      color: r.template === "professional" ? "#fff" : "#202938",
+    },
+    th: { fontSize: 7, fontFamily: "Helvetica-Bold" },
+    desc: { flex: 1 },
+    qty: { width: thermal ? 24 : 42, textAlign: "right" },
+    price: { width: thermal ? 48 : 75, textAlign: "right" },
+    amt: { width: thermal ? 48 : 80, textAlign: "right" },
+    row: { flexDirection: "row", paddingVertical: 7, borderBottomWidth: 1, borderColor: "#e5e9ef" },
+    cell: { fontSize: 7 },
+    bottom: {
+      flexDirection: thermal ? "column" : "row",
+      justifyContent: "space-between",
+      marginTop: 13,
+    },
+    payment: { flex: 1, marginBottom: thermal ? 12 : 0 },
+    totals: { width: thermal ? "100%" : "48%" },
+    line: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 },
+    totalLine: { borderTopWidth: 1, borderColor: "#e5e9ef", marginTop: 4, paddingTop: 7 },
+    grand: {
+      fontSize: thermal ? 11 : 13,
+      fontFamily: "Helvetica-Bold",
+      color: r.template === "professional" ? "#bd8429" : "#202938",
+    },
+    note: { marginTop: 12, padding: 8, backgroundColor: "#f3f5f7", fontSize: 7 },
+    thank: { marginTop: 18, textAlign: "center", fontSize: 9, fontFamily: "Helvetica-Bold" },
+    foot: { marginTop: 8, textAlign: "center", color: "#8791a0", fontSize: 6 },
+  });
+  const method = r.paymentMethod.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return (
+    <Document title={"Receipt " + r.receiptNumber} author="Code with Omesh">
+      <Page size={size} style={s.page}>
+        <View style={s.top}>
+          <View style={s.business}>
+            {r.business.logoDataUrl && <Image src={r.business.logoDataUrl} style={s.logo} />}
+            <Text style={s.name}>{r.business.name || "Your Business Name"}</Text>
+            {r.business.address && <Text style={s.muted}>{r.business.address}</Text>}
+            <Text style={s.muted}>
+              {[r.business.phone, r.business.email, r.business.website].filter(Boolean).join(" · ")}
+            </Text>
+            {r.business.taxNumber && <Text style={s.muted}>Tax ID: {r.business.taxNumber}</Text>}
+          </View>
+          <View>
+            <Text style={s.title}>PAYMENT RECEIPT</Text>
+            <Text style={s.number}>{r.receiptNumber}</Text>
+          </View>
+        </View>
+        {r.template === "professional" && <View style={s.accent} />}
+        <View style={s.info}>
+          <View style={s.infoCell}>
+            <Text style={s.label}>RECEIPT DATE</Text>
+            <Text style={s.value}>
+              {r.date}
+              {r.time ? " · " + r.time : ""}
+            </Text>
+          </View>
+          <View style={s.infoCell}>
+            <Text style={s.label}>PAYMENT STATUS</Text>
+            <Text style={s.value}>{t.status.toUpperCase()}</Text>
+          </View>
+          {r.customer.name && (
+            <View style={s.infoCell}>
+              <Text style={s.label}>RECEIVED FROM</Text>
+              <Text style={s.value}>{r.customer.name}</Text>
+              <Text style={s.muted}>{r.customer.address}</Text>
+            </View>
+          )}
+          {(r.customer.phone || r.customer.email) && (
+            <View style={s.infoCell}>
+              <Text style={s.label}>CUSTOMER CONTACT</Text>
+              <Text style={s.value}>
+                {[r.customer.phone, r.customer.email].filter(Boolean).join(" · ")}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={s.thead}>
+          <Text style={[s.th, s.desc]}>Description</Text>
+          <Text style={[s.th, s.qty]}>Qty</Text>
+          <Text style={[s.th, s.price]}>Price</Text>
+          <Text style={[s.th, s.amt]}>Amount</Text>
+        </View>
+        {r.items.map((i) => (
+          <View style={s.row} key={i.id}>
+            <Text style={[s.cell, s.desc]}>{i.description || "Item"}</Text>
+            <Text style={[s.cell, s.qty]}>{i.quantity}</Text>
+            <Text style={[s.cell, s.price]}>{money(i.unitPrice || 0, r.currency)}</Text>
+            <Text style={[s.cell, s.amt]}>
+              {money(dec(i.quantity || 0).times(dec(i.unitPrice || 0)), r.currency)}
+            </Text>
+          </View>
+        ))}
+        <View style={s.bottom}>
+          <View style={s.payment}>
+            <Text style={s.label}>PAYMENT METHOD</Text>
+            <Text style={s.value}>{method}</Text>
+            {r.transactionReference && (
+              <Text style={s.muted}>Reference: {r.transactionReference}</Text>
+            )}
+          </View>
+          <View style={s.totals}>
+            <View style={s.line}>
+              <Text>Subtotal</Text>
+              <Text>{money(t.subtotal, r.currency)}</Text>
+            </View>
+            {t.discount.gt(0) && (
+              <View style={s.line}>
+                <Text>Discount</Text>
+                <Text>-{money(t.discount, r.currency)}</Text>
+              </View>
+            )}
+            {t.tax.gt(0) && (
+              <View style={s.line}>
+                <Text>{r.tax.label || "Tax"}</Text>
+                <Text>{money(t.tax, r.currency)}</Text>
+              </View>
+            )}
+            <View style={[s.line, s.totalLine]}>
+              <Text style={s.grand}>Total</Text>
+              <Text style={s.grand}>{money(t.total, r.currency)}</Text>
+            </View>
+            <View style={s.line}>
+              <Text>Amount paid</Text>
+              <Text>{money(t.amountPaid, r.currency)}</Text>
+            </View>
+            <View style={s.line}>
+              <Text>Balance due</Text>
+              <Text>{money(t.balanceDue, r.currency)}</Text>
+            </View>
+          </View>
+        </View>
+        {r.notes && (
+          <View style={s.note}>
+            <Text style={s.label}>NOTES</Text>
+            <Text>{r.notes}</Text>
+          </View>
+        )}
+        {r.terms && (
+          <View style={s.note}>
+            <Text style={s.label}>TERMS & CONDITIONS</Text>
+            <Text>{r.terms}</Text>
+          </View>
+        )}
+        <Text style={s.thank}>{r.footer || "Thank you for your business!"}</Text>
+        <Text style={s.foot}>Created with Code with Omesh · codewithomesh.com</Text>
+      </Page>
+    </Document>
+  );
+}

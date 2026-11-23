@@ -1,6 +1,55 @@
-import {z} from "zod";
-export function localDate(date=new Date()){return [date.getFullYear(),String(date.getMonth()+1).padStart(2,"0"),String(date.getDate()).padStart(2,"0")].join("-")}
-export function receiptNumber(date=new Date()){return "REC-"+date.getFullYear()+String(date.getMonth()+1).padStart(2,"0")+String(date.getDate()).padStart(2,"0")+"-"+String(date.getHours()).padStart(2,"0")+String(date.getMinutes()).padStart(2,"0")+String(Date.now()).slice(-6)}
-const nonNegative=z.string().refine(v=>v.trim()!==""&&Number.isFinite(Number(v))&&Number(v)>=0,"Enter a valid non-negative amount.");
-export const receiptSchema=z.object({receiptNumber:z.string().trim().min(1,"Receipt number is required."),date:z.string().min(1,"Receipt date is required."),currency:z.string().regex(/^[A-Z]{3}$/,"Select a valid currency."),business:z.object({name:z.string().trim().min(1,"Business name is required.")}),items:z.array(z.object({description:z.string().trim().min(1,"Enter a description for every item."),quantity:z.string().refine(v=>Number.isFinite(Number(v))&&Number(v)>0,"Quantity must be greater than zero."),unitPrice:nonNegative})).min(1,"Add at least one item."),discount:z.object({value:nonNegative}),tax:z.object({value:nonNegative}),amountPaid:nonNegative});
-export function validateReceipt(receipt:unknown){const result=receiptSchema.safeParse(receipt);return result.success?null:result.error.issues[0]?.message??"Please review the receipt details."}
+import { z } from "zod";
+export function localDate(date = new Date()) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+export function receiptNumber(date = new Date()) {
+  return (
+    "REC-" +
+    date.getFullYear() +
+    String(date.getMonth() + 1).padStart(2, "0") +
+    String(date.getDate()).padStart(2, "0") +
+    "-" +
+    String(date.getHours()).padStart(2, "0") +
+    String(date.getMinutes()).padStart(2, "0") +
+    String(Date.now()).slice(-6)
+  );
+}
+const nonNegative = z
+  .string()
+  .refine(
+    (v) => v.trim() !== "" && Number.isFinite(Number(v)) && Number(v) >= 0,
+    "Enter a valid non-negative amount.",
+  );
+export const receiptSchema = z.object({
+  receiptNumber: z.string().trim().min(1, "Receipt number is required."),
+  date: z.string().min(1, "Receipt date is required."),
+  currency: z.string().regex(/^[A-Z]{3}$/, "Select a valid currency."),
+  business: z.object({ name: z.string().trim().min(1, "Business name is required.") }),
+  items: z
+    .array(
+      z.object({
+        description: z.string().trim().min(1, "Enter a description for every item."),
+        quantity: z
+          .string()
+          .refine(
+            (v) => Number.isFinite(Number(v)) && Number(v) > 0,
+            "Quantity must be greater than zero.",
+          ),
+        unitPrice: nonNegative,
+      }),
+    )
+    .min(1, "Add at least one item."),
+  discount: z.object({ value: nonNegative }),
+  tax: z.object({ value: nonNegative }),
+  amountPaid: nonNegative,
+});
+export function validateReceipt(receipt: unknown) {
+  const result = receiptSchema.safeParse(receipt);
+  return result.success
+    ? null
+    : (result.error.issues[0]?.message ?? "Please review the receipt details.");
+}

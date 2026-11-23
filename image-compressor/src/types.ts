@@ -21,7 +21,11 @@ export const ACCEPTED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as 
 export const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
 export function isSupportedImage(file: Pick<File, "type" | "size">): boolean {
-  return (ACCEPTED_MIME_TYPES as readonly string[]).includes(file.type) && file.size > 0 && file.size <= MAX_FILE_SIZE;
+  return (
+    (ACCEPTED_MIME_TYPES as readonly string[]).includes(file.type) &&
+    file.size > 0 &&
+    file.size <= MAX_FILE_SIZE
+  );
 }
 
 export function outputMimeType(originalMime: string, format: OutputFormat): string {
@@ -33,14 +37,22 @@ export function outputMimeType(originalMime: string, format: OutputFormat): stri
 
 export function outputExtension(mimeType: string): string {
   switch (mimeType) {
-    case "image/jpeg": return "jpg";
-    case "image/png": return "png";
-    case "image/webp": return "webp";
-    default: throw new Error("Unsupported output image format.");
+    case "image/jpeg":
+      return "jpg";
+    case "image/png":
+      return "png";
+    case "image/webp":
+      return "webp";
+    default:
+      throw new Error("Unsupported output image format.");
   }
 }
 
-export function resizedDimensions(width: number, height: number, maxDimension: number): ImageDimensions {
+export function resizedDimensions(
+  width: number,
+  height: number,
+  maxDimension: number,
+): ImageDimensions {
   if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
     throw new Error("Image dimensions must be positive numbers.");
   }
@@ -76,6 +88,10 @@ export function savingsPercent(originalBytes: number, outputBytes: number): numb
 }
 
 export function safeOutputName(name: string, extension: string): string {
-  const stem = name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "image";
+  const stem =
+    name
+      .replace(/\.[^.]+$/, "")
+      .replace(/[^a-zA-Z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "image";
   return `${stem}-compressed.${extension}`;
 }

@@ -15,21 +15,32 @@ export interface CompressedImage {
 
 function canvasToBlob(canvas: HTMLCanvasElement, mimeType: string, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    canvas.toBlob(blob => {
-      if (!blob) {
-        reject(new Error("The browser could not create the compressed image."));
-        return;
-      }
-      if (blob.type !== mimeType) {
-        reject(new Error(`This browser cannot export ${mimeType.replace("image/", "").toUpperCase()} images.`));
-        return;
-      }
-      resolve(blob);
-    }, mimeType, quality);
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("The browser could not create the compressed image."));
+          return;
+        }
+        if (blob.type !== mimeType) {
+          reject(
+            new Error(
+              `This browser cannot export ${mimeType.replace("image/", "").toUpperCase()} images.`,
+            ),
+          );
+          return;
+        }
+        resolve(blob);
+      },
+      mimeType,
+      quality,
+    );
   });
 }
 
-export async function compressImage(file: File, settings: CompressorSettings): Promise<CompressedImage> {
+export async function compressImage(
+  file: File,
+  settings: CompressorSettings,
+): Promise<CompressedImage> {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
     throw new Error("Choose a JPG, PNG or WebP image.");
   }

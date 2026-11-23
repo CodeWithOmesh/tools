@@ -1,2 +1,44 @@
-import {describe,it,expect} from "vitest";import {calculate,currencyDigits,money} from "./money";import {defaultReceipt} from "./store";
-describe("receipt calculations",()=>{it("calculates discount and tax after discount",()=>{const r=defaultReceipt();r.currency="USD";r.items=[{id:"1",description:"Build",quantity:"1",unitPrice:"500"},{id:"2",description:"Hosting",quantity:"1",unitPrice:"100"}];r.discount={type:"percentage",value:"10"};r.tax={type:"percentage",value:"5",label:"Tax"};r.amountPaid="400";const t=calculate(r);expect(t.subtotal.toFixed(2)).toBe("600.00");expect(t.discount.toFixed(2)).toBe("60.00");expect(t.tax.toFixed(2)).toBe("27.00");expect(t.total.toFixed(2)).toBe("567.00");expect(t.balanceDue.toFixed(2)).toBe("167.00");expect(t.status).toBe("partial")});it("respects currency decimal digits",()=>{expect(currencyDigits("JPY")).toBe(0);expect(currencyDigits("USD")).toBe(2);expect(money("1234.5","JPY")).toContain("1,235")});it("caps discounts and avoids negative balances",()=>{const r=defaultReceipt();r.items=[{id:"a",description:"Item",quantity:"1",unitPrice:"10"}];r.discount={type:"fixed",value:"50"};r.amountPaid="100";const t=calculate(r);expect(t.discount.toFixed(2)).toBe("10.00");expect(t.balanceDue.toFixed(2)).toBe("0.00");expect(t.changeDue.toFixed(2)).toBe("100.00")});it("marks unpaid when no payment has been received",()=>{const r=defaultReceipt();r.items=[{id:"a",description:"Item",quantity:"2",unitPrice:"25"}];r.amountPaid="0";expect(calculate(r).status).toBe("unpaid")})});
+import { describe, it, expect } from "vitest";
+import { calculate, currencyDigits, money } from "./money";
+import { defaultReceipt } from "./store";
+describe("receipt calculations", () => {
+  it("calculates discount and tax after discount", () => {
+    const r = defaultReceipt();
+    r.currency = "USD";
+    r.items = [
+      { id: "1", description: "Build", quantity: "1", unitPrice: "500" },
+      { id: "2", description: "Hosting", quantity: "1", unitPrice: "100" },
+    ];
+    r.discount = { type: "percentage", value: "10" };
+    r.tax = { type: "percentage", value: "5", label: "Tax" };
+    r.amountPaid = "400";
+    const t = calculate(r);
+    expect(t.subtotal.toFixed(2)).toBe("600.00");
+    expect(t.discount.toFixed(2)).toBe("60.00");
+    expect(t.tax.toFixed(2)).toBe("27.00");
+    expect(t.total.toFixed(2)).toBe("567.00");
+    expect(t.balanceDue.toFixed(2)).toBe("167.00");
+    expect(t.status).toBe("partial");
+  });
+  it("respects currency decimal digits", () => {
+    expect(currencyDigits("JPY")).toBe(0);
+    expect(currencyDigits("USD")).toBe(2);
+    expect(money("1234.5", "JPY")).toContain("1,235");
+  });
+  it("caps discounts and avoids negative balances", () => {
+    const r = defaultReceipt();
+    r.items = [{ id: "a", description: "Item", quantity: "1", unitPrice: "10" }];
+    r.discount = { type: "fixed", value: "50" };
+    r.amountPaid = "100";
+    const t = calculate(r);
+    expect(t.discount.toFixed(2)).toBe("10.00");
+    expect(t.balanceDue.toFixed(2)).toBe("0.00");
+    expect(t.changeDue.toFixed(2)).toBe("100.00");
+  });
+  it("marks unpaid when no payment has been received", () => {
+    const r = defaultReceipt();
+    r.items = [{ id: "a", description: "Item", quantity: "2", unitPrice: "25" }];
+    r.amountPaid = "0";
+    expect(calculate(r).status).toBe("unpaid");
+  });
+});

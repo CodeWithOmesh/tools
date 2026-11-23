@@ -9,7 +9,11 @@ export interface RenderOptions {
   margin: number;
 }
 
-export async function renderQrPng(payload: string, options: RenderOptions, logoDataUrl = ""): Promise<string> {
+export async function renderQrPng(
+  payload: string,
+  options: RenderOptions,
+  logoDataUrl = "",
+): Promise<string> {
   const dataUrl = await QRCode.toDataURL(payload, {
     errorCorrectionLevel: options.errorCorrection,
     margin: options.margin,
@@ -29,7 +33,14 @@ function loadImage(source: string): Promise<HTMLImageElement> {
   });
 }
 
-function roundedRect(context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+function roundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
   const r = Math.min(radius, width / 2, height / 2);
   context.beginPath();
   context.moveTo(x + r, y);
@@ -44,7 +55,12 @@ function roundedRect(context: CanvasRenderingContext2D, x: number, y: number, wi
   context.closePath();
 }
 
-async function overlayLogo(qrDataUrl: string, logoDataUrl: string, size: number, background: string): Promise<string> {
+async function overlayLogo(
+  qrDataUrl: string,
+  logoDataUrl: string,
+  size: number,
+  background: string,
+): Promise<string> {
   const [qrImage, logoImage] = await Promise.all([loadImage(qrDataUrl), loadImage(logoDataUrl)]);
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -69,7 +85,11 @@ async function overlayLogo(qrDataUrl: string, logoDataUrl: string, size: number,
   return canvas.toDataURL("image/png");
 }
 
-export async function renderQrSvg(payload: string, options: RenderOptions, logoDataUrl = ""): Promise<string> {
+export async function renderQrSvg(
+  payload: string,
+  options: RenderOptions,
+  logoDataUrl = "",
+): Promise<string> {
   let svg = await QRCode.toString(payload, {
     type: "svg",
     errorCorrectionLevel: options.errorCorrection,
