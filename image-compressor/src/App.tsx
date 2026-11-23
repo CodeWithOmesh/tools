@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import JSZip from "jszip";
 import {
-  ArrowDownToLine, Check, ChevronDown, FileImage, ImagePlus, LoaderCircle,
-  RefreshCw, ShieldCheck, Sparkles, Trash2, UploadCloud, X,
+  ArrowDownToLine, Check, ChevronDown, FileImage, LoaderCircle,
+  ShieldCheck, Sparkles, Trash2, UploadCloud, X,
 } from "lucide-react";
 import { compressImage, type CompressedImage } from "./compress";
 import {
   ACCEPTED_MIME_TYPES, DEFAULT_SETTINGS, formatBytes, isSupportedImage,
-  safeOutputName, savingsPercent, type CompressorSettings, type OutputFormat,
+  outputExtension, safeOutputName, savingsPercent, type CompressorSettings, type OutputFormat,
 } from "./types";
 
 interface QueueItem {
@@ -107,14 +107,12 @@ function App() {
   };
 
   const removeItem = (id: string) => {
-    setItems(current => {
-      const target = current.find(item => item.id === id);
-      if (target) {
-        URL.revokeObjectURL(target.previewUrl);
-        if (target.outputUrl) URL.revokeObjectURL(target.outputUrl);
-      }
-      return current.filter(item => item.id !== id);
-    });
+    const target = itemsRef.current.find(item => item.id === id);
+    if (target) {
+      URL.revokeObjectURL(target.previewUrl);
+      if (target.outputUrl) URL.revokeObjectURL(target.outputUrl);
+    }
+    setItems(current => current.filter(item => item.id !== id));
   };
 
   const clearAll = () => {
@@ -134,7 +132,7 @@ function App() {
     const zip = new JSZip();
     ready.forEach(item => {
       const output = item.output!;
-      const filename = safeOutputName(item.file.name, output.mimeType === "image/jpeg" ? "jpg" : output.mimeType.split("/")[1]);
+      const filename = safeOutputName(item.file.name, outputExtension(output.mimeType));
       zip.file(filename, output.blob);
     });
     const blob = await zip.generateAsync({ type: "blob" });
