@@ -66,14 +66,14 @@ function App() {
         return;
       }
       accepted.push({
-        id: \`\${Date.now()}-\${Math.random().toString(36).slice(2)}\`,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         file,
         previewUrl: URL.createObjectURL(file),
         status: "ready",
       });
     });
     if (accepted.length) setItems(current => [...current, ...accepted]);
-    setNotice(rejected.length ? rejected.slice(0, 2).join(" · ") + (rejected.length > 2 ? \` · +\${rejected.length - 2} more\` : "") : "");
+    setNotice(rejected.length ? rejected.slice(0, 2).join(" · ") + (rejected.length > 2 ? ` · +${rejected.length - 2} more` : "") : "");
   }, []);
 
   const updateSetting = <K extends keyof CompressorSettings>(key: K, value: CompressorSettings[K]) => {
@@ -165,7 +165,7 @@ function App() {
         <div className="workspace">
           <section className="main-column">
             <div
-              className={\`dropzone \${dragging ? "is-dragging" : ""}\`}
+              className={`dropzone ${dragging ? "is-dragging" : ""}`}
               onDragOver={event => { event.preventDefault(); setDragging(true); }}
               onDragLeave={event => { event.preventDefault(); setDragging(false); }}
               onDrop={event => { event.preventDefault(); setDragging(false); addFiles(event.dataTransfer.files); }}
@@ -211,7 +211,7 @@ function App() {
                         {item.status === "done" && output && (
                           <div className="result-meta">
                             <b>{formatBytes(output.blob.size)}</b><span>·</span>{output.width} × {output.height}
-                            <span className={percent >= 0 ? "saved" : "larger"}>{percent >= 0 ? \`−\${percent}%\` : \`+\${Math.abs(percent)}%\`}</span>
+                            <span className={percent >= 0 ? "saved" : "larger"}>{percent >= 0 ? `−${percent}%` : `+${Math.abs(percent)}%`}</span>
                           </div>
                         )}
                         {item.status === "error" && <div className="error-text">{item.error}</div>}
@@ -236,7 +236,7 @@ function App() {
               <section className="summary-panel">
                 <div className="summary-icon"><Check size={18} /></div>
                 <div className="summary-content"><b>Compression complete</b><span>{formatBytes(totalOriginal)} → {formatBytes(totalOutput)} across {completed.length} {completed.length === 1 ? "image" : "images"}</span></div>
-                <div className={savings >= 0 ? "summary-saving" : "summary-saving negative"}>{savings >= 0 ? \`−\${savings}%\` : \`+\${Math.abs(savings)}%\`}<small>{savings >= 0 ? "saved" : "larger"}</small></div>
+                <div className={savings >= 0 ? "summary-saving" : "summary-saving negative"}>{savings >= 0 ? `−${savings}%` : `+${Math.abs(savings)}%`}<small>{savings >= 0 ? "saved" : "larger"}</small></div>
               </section>
             )}
           </section>
@@ -280,7 +280,7 @@ function App() {
 
             <div className="settings-divider" />
             <button className="compress-button" onClick={compressAll} disabled={!items.length || busy}>
-              {busy ? <><LoaderCircle size={17} className="spin" /> Compressing…</> : <><Sparkles size={17} /> Compress {items.length ? \`\${items.length} image\${items.length === 1 ? "" : "s"}\` : "images"}</>}
+              {busy ? <><LoaderCircle size={17} className="spin" /> Compressing…</> : <><Sparkles size={17} /> Compress {items.length ? `${items.length} image${items.length === 1 ? "" : "s"}` : "images"}</>}
             </button>
             <button className="download-zip-button" onClick={downloadAll} disabled={!completed.length || busy}><ArrowDownToLine size={16} /> Download all as ZIP</button>
             <p className="privacy-note"><ShieldCheck size={14} /> Processing happens locally in your browser.</p>
