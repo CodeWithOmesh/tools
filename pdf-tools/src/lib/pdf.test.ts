@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { PDFDocument } from "pdf-lib";
+import { degrees, PDFDocument } from "pdf-lib";
 import {
+  addPageNumbers,
+  addWatermark,
   extractPages,
   formatPageSelection,
   imagesToPdf,
@@ -9,6 +11,7 @@ import {
   normalizeRotation,
   organizePdf,
   parsePageRanges,
+  placeImage,
   rangesToIndices,
   splitByRanges,
 } from "./pdf";
@@ -153,5 +156,77 @@ describe("images to PDF", () => {
       margin: 0,
     });
     expect((await PDFDocument.load(result)).getPageCount()).toBe(3);
+  });
+});
+
+describe("drawing on pages", () => {
+  async function rotatedPdf(): Promise<Uint8Array> {
+    const document = await PDFDocument.create();
+    document.addPage([300, 400]);
+    document.addPage([300, 400]).setRotation(degrees(90));
+    document.addPage([300, 400]).setRotation(degrees(270));
+    return document.save();
+  }
+
+  async function contentLength(bytes: Uint8Array, pageIndex: number): Promise<number> {
+    const document = await PDFDocument.load(bytes);
+    const contents = document.getPage(pageIndex).node.Contents();
+    return contents ? contents.toString().length : 0;
+  }
+
+  it("adds page numbers to the chosen pages only", async () => {
+    const source = await rotatedPdf();
+    const result = await addPageNumbers(source, {
+      position: "bottom-center",
+      format: "page-n-of-total",
+      startAt: 1,
+      fontSize: 11,
+      margin: 28,
+      pages: [1, 2],
+    });
+    expect(await pageWidths(result)).toEqual([300, 300, 300]);
+    expect(await contentLength(result, 0)).toBe(await contentLength(source, 0));
+    expect(await contentLength(result, 1)).toBeGreaterThan(await contentLength(source, 1));
+  });
+
+  it("adds a watermark to every page", async () => {
+    const result = await addWatermark(await rotatedPdf(), {
+      text: "CONFIDENTIAL",
+      layout: "tiled",
+      size: "medium",
+      color: "#ff0000",
+      opacity: 0.3,
+    });
+    const document = await PDFDocument.load(result);
+    expect(document.getPageCount()).toBe(3);
+    expect(document.getPage(2).getRotation().angle).toBe(270);
+  });
+
+  it("explains watermark text the PDF font cannot draw", async () => {
+    await expect(
+      addWatermark(await rotatedPdf(), {
+        text: "₹ PAID",
+        layout: "diagonal",
+        size: "medium",
+        color: "#000000",
+        opacity: 0.3,
+      }),
+    ).rejects.toThrow("Remove: ₹");
+  });
+
+  it("places a signature image on the chosen pages", async () => {
+    const result = await placeImage(
+      await rotatedPdf(),
+      { bytes: PNG_1X1, format: "png", aspect: 1 },
+      [
+        { pageIndex: 1, left: 0.6, top: 0.8, width: 0.3 },
+        { pageIndex: 2, left: 0.1, top: 0.1, width: 0.2 },
+      ],
+    );
+    const document = await PDFDocument.load(result);
+    expect(document.getPageCount()).toBe(3);
+    await expect(
+      placeImage(result, { bytes: PNG_1X1, format: "png", aspect: 1 }, []),
+    ).rejects.toThrow("at least one page");
   });
 });

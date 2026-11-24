@@ -21,6 +21,10 @@ const FAQ: [string, string][] = [
     "Each PDF can be up to 100 MB and each image up to 25 MB. Very large files depend on your device's memory.",
   ],
   [
+    "Is signing a PDF here legally binding?",
+    "The Sign PDF tool adds an image of your signature, like signing a printed page. That is accepted for many everyday documents, but it is not a certificate-based digital signature. Check what your recipient requires for contracts and official forms.",
+  ],
+  [
     "Do the tools work on my phone?",
     "Yes. They work in modern mobile browsers. On phones you can use the arrow buttons instead of dragging to reorder.",
   ],
@@ -37,8 +41,8 @@ export default function Home() {
           Free online <span>PDF tools</span>
         </h1>
         <p>
-          Merge, split, convert and organize PDF files right in your browser. Your documents never
-          leave your device.
+          Merge, split, convert, number, watermark and sign PDF files right in your browser. Your
+          documents never leave your device.
         </p>
         <div className="trust-row">
           <span>

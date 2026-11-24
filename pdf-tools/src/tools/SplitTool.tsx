@@ -3,7 +3,7 @@ import { Check, FileText, LoaderCircle, Scissors } from "lucide-react";
 import { Dropzone, ErrorMessage, PrivacyNote, SuccessMessage, ToolLayout } from "../components";
 import {
   downloadPdf,
-  downloadPdfsAsZip,
+  downloadZip,
   errorMessage,
   fileStem,
   formatBytes,
@@ -96,7 +96,11 @@ export default function SplitTool({ tool }: { tool: ToolInfo }) {
         };
       });
       if (files.length === 1) downloadPdf(files[0].bytes, files[0].name);
-      else await downloadPdfsAsZip(files, `${stem}-split.zip`);
+      else
+        await downloadZip(
+          files.map((file) => ({ name: file.name, data: file.bytes })),
+          `${stem}-split.zip`,
+        );
       setSuccess(
         files.length === 1
           ? "Saved 1 PDF."

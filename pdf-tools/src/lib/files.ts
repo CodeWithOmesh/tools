@@ -26,14 +26,14 @@ export function downloadPdf(bytes: Uint8Array, filename: string) {
   downloadBlob(new Blob([bytes], { type: "application/pdf" }), filename);
 }
 
-/** Bundles several PDFs into a ZIP and downloads it. JSZip is loaded only when needed. */
-export async function downloadPdfsAsZip(
-  files: { name: string; bytes: Uint8Array }[],
+/** Bundles several files into a ZIP and downloads it. JSZip is loaded only when needed. */
+export async function downloadZip(
+  files: { name: string; data: Uint8Array | Blob }[],
   zipName: string,
 ) {
   const { default: JSZip } = await import("jszip");
   const zip = new JSZip();
-  files.forEach((file) => zip.file(file.name, file.bytes));
+  files.forEach((file) => zip.file(file.name, file.data));
   downloadBlob(await zip.generateAsync({ type: "blob" }), zipName);
 }
 

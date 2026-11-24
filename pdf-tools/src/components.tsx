@@ -1,6 +1,9 @@
 import { useRef, useState, type DragEvent, type ReactNode } from "react";
-import { Check, ShieldCheck, Sparkles, UploadCloud } from "lucide-react";
+import { Check, FileText, LoaderCircle, ShieldCheck, Sparkles, UploadCloud } from "lucide-react";
+import { formatBytes, pluralize } from "./lib/files";
+import { parsePageRanges, rangesToIndices } from "./lib/ranges";
 import type { ToolInfo } from "./tools";
+import type { LoadedPdf } from "./useSinglePdf";
 
 // ---------------------------------------------------------------------------
 // File drop area
@@ -132,6 +135,140 @@ export function PrivacyNote() {
     <p className="privacy-note">
       <ShieldCheck size={15} /> Your files are processed in your browser and never uploaded.
     </p>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Opening a single PDF
+// ---------------------------------------------------------------------------
+
+/** The drop area before a PDF is chosen, and the file name bar afterwards. */
+export function SinglePdfPicker({
+  pdf,
+  loading,
+  busy,
+  onFiles,
+  onClear,
+}: {
+  pdf: LoadedPdf | null;
+  loading: boolean;
+  busy: boolean;
+  onFiles: (files: File[]) => void;
+  onClear: () => void;
+}) {
+  return (
+    <>
+      {pdf ? (
+        <div className="file-bar">
+          <FileText size={20} aria-hidden />
+          <div>
+            <b title={pdf.file.name}>{pdf.file.name}</b>
+            <small>
+              {formatBytes(pdf.file.size)} · {pluralize(pdf.pageCount, "page")}
+            </small>
+          </div>
+          <button type="button" className="text-button" onClick={onClear} disabled={busy}>
+            Choose another file
+          </button>
+        </div>
+      ) : (
+        <Dropzone
+          accept="application/pdf,.pdf"
+          multiple={false}
+          title="Drop a PDF here"
+          hint="One PDF file up to 100 MB"
+          onFiles={onFiles}
+        />
+      )}
+      {loading ? (
+        <p className="message info">
+          <LoaderCircle size={15} className="spin" /> Opening PDF…
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Choosing which pages a change applies to
+// ---------------------------------------------------------------------------
+
+export interface PageChoiceValue {
+  all: boolean;
+  input: string;
+}
+
+export const ALL_PAGES: PageChoiceValue = { all: true, input: "" };
+
+/** The 0-based pages chosen, `undefined` for all pages, or an error to show. */
+export function resolvePageChoice(
+  value: PageChoiceValue,
+  pageCount: number,
+): { pages?: number[]; count: number; error: string } {
+  if (value.all) return { count: pageCount, error: "" };
+  if (!value.input.trim()) return { pages: [], count: 0, error: "Type the pages to use." };
+  try {
+    const pages = rangesToIndices(parsePageRanges(value.input, pageCount));
+    return { pages, count: pages.length, error: "" };
+  } catch (reason) {
+    return {
+      pages: [],
+      count: 0,
+      error: reason instanceof Error ? reason.message : "Check the pages.",
+    };
+  }
+}
+
+export function PageChoice({
+  value,
+  pageCount,
+  onChange,
+  label = "Pages",
+}: {
+  value: PageChoiceValue;
+  pageCount: number;
+  onChange: (value: PageChoiceValue) => void;
+  label?: string;
+}) {
+  const { error } = resolvePageChoice(value, pageCount);
+  return (
+    <div className="field">
+      <span>{label}</span>
+      <div className="segmented" role="radiogroup" aria-label={label}>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={value.all}
+          className={value.all ? "active" : ""}
+          onClick={() => onChange({ ...value, all: true })}
+        >
+          All pages
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={!value.all}
+          className={!value.all ? "active" : ""}
+          onClick={() => onChange({ ...value, all: false })}
+        >
+          Choose pages
+        </button>
+      </div>
+      {!value.all ? (
+        <>
+          <input
+            value={value.input}
+            onChange={(event) => onChange({ ...value, input: event.target.value })}
+            placeholder={`e.g. 1-3, 5 (1–${pageCount})`}
+            aria-label="Pages to use"
+            aria-invalid={Boolean(error && value.input.trim())}
+          />
+          <small className={error && value.input.trim() ? "field-error" : "field-hint"}>
+            {value.input.trim() && error ? error : "Separate pages and ranges with commas."}
+          </small>
+        </>
+      ) : null}
+    </div>
   );
 }
 
