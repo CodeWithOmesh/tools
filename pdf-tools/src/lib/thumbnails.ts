@@ -59,3 +59,80 @@ export function renderThumbnails(
     done,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Full-size page rendering (PDF to image, signature placement)
+// ---------------------------------------------------------------------------
+
+/** Browsers refuse to draw canvases much larger than this (Safari's limit is ~16.7 MP). */
+const MAX_CANVAS_PIXELS = 16_000_000;
+const MAX_CANVAS_SIDE = 8000;
+
+export interface RenderedPage {
+  blob: Blob;
+  width: number;
+  height: number;
+}
+
+export interface PdfRenderer {
+  pageCount: number;
+  /**
+   * Renders one 0-based page. `scale` 1 = 72 DPI, or `{ width }` renders it that many pixels
+   * wide. The scale is reduced if the page would be too large for the browser to draw.
+   */
+  render: (
+    pageIndex: number,
+    scale: number | { width: number },
+    type?: "image/jpeg" | "image/png",
+    quality?: number,
+  ) => Promise<RenderedPage>;
+  destroy: () => Promise<void>;
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob> {
+  return new Promise((resolve, reject) =>
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("The page image could not be created."))),
+      type,
+      quality,
+    ),
+  );
+}
+
+/** Opens a PDF once so several pages can be rendered without parsing it again. */
+export async function openRenderer(bytes: Uint8Array): Promise<PdfRenderer> {
+  const pdfjs = await loadPdfJs();
+  const document = await pdfjs.getDocument({ data: bytes.slice() }).promise;
+  return {
+    pageCount: document.numPages,
+    async render(pageIndex, scale, type = "image/jpeg", quality = 0.92) {
+      const page = await document.getPage(pageIndex + 1);
+      try {
+        const base = page.getViewport({ scale: 1 });
+        const limit = Math.min(
+          Math.sqrt(MAX_CANVAS_PIXELS / (base.width * base.height)),
+          MAX_CANVAS_SIDE / Math.max(base.width, base.height),
+        );
+        const wanted = typeof scale === "number" ? scale : scale.width / base.width;
+        const viewport = page.getViewport({ scale: Math.min(wanted, limit) });
+        const canvas = window.document.createElement("canvas");
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Your browser could not draw the page.");
+        // A white background, so transparent areas are not black in JPG files.
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvasContext: context, viewport }).promise;
+        const blob = await canvasToBlob(canvas, type, type === "image/jpeg" ? quality : undefined);
+        // Free the canvas memory straight away; large pages use a lot of it.
+        canvas.width = 0;
+        canvas.height = 0;
+        return { blob, width: Math.floor(viewport.width), height: Math.floor(viewport.height) };
+      } finally {
+        page.cleanup();
+      }
+    },
+    destroy: () => document.destroy(),
+  };
+}

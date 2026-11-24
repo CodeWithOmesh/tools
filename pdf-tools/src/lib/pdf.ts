@@ -1,9 +1,30 @@
-import { degrees, EncryptedPDFError, PDFDocument } from "pdf-lib";
+import { degrees, EncryptedPDFError, PDFDocument, rgb, StandardFonts, type PDFPage } from "pdf-lib";
 import { PdfToolError } from "./errors";
 import { rangesToIndices, type PageRange } from "./ranges";
+import {
+  centeredTextOrigin,
+  clampPlacement,
+  formatPageNumber,
+  hexToRgb,
+  pageNumberOrigin,
+  unsupportedCharacters,
+  visualSize,
+  visualToUser,
+  watermarkAngle,
+  watermarkCenters,
+  watermarkFontSize,
+  type NumberFormat,
+  type NumberPosition,
+  type PageFrame,
+  type Placement,
+  type Point,
+  type WatermarkLayout,
+  type WatermarkSize,
+} from "./stamp";
 
 export { PdfToolError } from "./errors";
 export * from "./ranges";
+export * from "./stamp";
 
 const PRODUCER = "Code with Omesh PDF Tools (codewithomesh.com)";
 
@@ -195,4 +216,187 @@ export async function imagesToPdf(
   }
   stamp(output);
   return output.save();
+}
+
+// ---------------------------------------------------------------------------
+// Drawing on pages (page numbers, watermarks, signatures)
+// ---------------------------------------------------------------------------
+
+function pageFrame(page: PDFPage): PageFrame {
+  const box = page.getCropBox();
+  return {
+    x: box.x,
+    y: box.y,
+    width: box.width,
+    height: box.height,
+    rotation: normalizeRotation(page.getRotation().angle),
+  };
+}
+
+/** Rejects text the built-in PDF font cannot draw, with a message naming the characters. */
+function assertDrawable(text: string, what: string) {
+  const unsupported = unsupportedCharacters(text);
+  if (unsupported.length) {
+    throw new PdfToolError(
+      `The ${what} can only use Latin letters, numbers and common symbols. Remove: ${unsupported.join(" ")}`,
+    );
+  }
+}
+
+/** Every page index, or the given ones after removing out-of-range values. */
+function targetPages(pageCount: number, pages?: number[]): number[] {
+  if (!pages) return Array.from({ length: pageCount }, (_, index) => index);
+  const valid = [...new Set(pages)].filter((index) => index >= 0 && index < pageCount);
+  if (!valid.length) throw new PdfToolError("Choose at least one page.");
+  return valid.sort((a, b) => a - b);
+}
+
+/** Draws text whose origin and angle are given on the displayed page. */
+function drawVisualText(
+  page: PDFPage,
+  frame: PageFrame,
+  text: string,
+  origin: Point,
+  angle: number,
+  options: Parameters<PDFPage["drawText"]>[1],
+) {
+  const point = visualToUser(frame, origin);
+  page.drawText(text, {
+    ...options,
+    x: point.x,
+    y: point.y,
+    rotate: degrees(angle + frame.rotation),
+  });
+}
+
+export interface PageNumberOptions {
+  position: NumberPosition;
+  format: NumberFormat;
+  /** Number shown on the first numbered page. */
+  startAt: number;
+  fontSize: number;
+  /** Distance from the page edge, in PDF points. */
+  margin: number;
+  /** 0-based pages to number. All pages when omitted. */
+  pages?: number[];
+}
+
+export async function addPageNumbers(
+  bytes: Uint8Array,
+  options: PageNumberOptions,
+): Promise<Uint8Array> {
+  const document = await loadPdf(bytes);
+  const font = await document.embedFont(StandardFonts.Helvetica);
+  const pages = document.getPages();
+  const targets = targetPages(pages.length, options.pages);
+  const startAt = Math.max(0, Math.round(options.startAt));
+  const total = startAt + targets.length - 1;
+  targets.forEach((pageIndex, position) => {
+    const page = pages[pageIndex];
+    const frame = pageFrame(page);
+    const text = formatPageNumber(options.format, startAt + position, total);
+    const width = font.widthOfTextAtSize(text, options.fontSize);
+    const origin = pageNumberOrigin(
+      options.position,
+      visualSize(frame),
+      width,
+      options.fontSize,
+      options.margin,
+    );
+    drawVisualText(page, frame, text, origin, 0, {
+      font,
+      size: options.fontSize,
+      color: rgb(0.2, 0.2, 0.2),
+    });
+  });
+  stamp(document);
+  return document.save();
+}
+
+export interface WatermarkOptions {
+  text: string;
+  layout: WatermarkLayout;
+  size: WatermarkSize;
+  /** "#rrggbb" */
+  color: string;
+  /** 0–1 */
+  opacity: number;
+  pages?: number[];
+}
+
+export async function addWatermark(
+  bytes: Uint8Array,
+  options: WatermarkOptions,
+): Promise<Uint8Array> {
+  const text = options.text.replace(/\s+/g, " ").trim();
+  if (!text) throw new PdfToolError("Type the watermark text.");
+  assertDrawable(text, "watermark text");
+  const document = await loadPdf(bytes);
+  const font = await document.embedFont(StandardFonts.HelveticaBold);
+  const pages = document.getPages();
+  const [red, green, blue] = hexToRgb(options.color);
+  const unitWidth = font.widthOfTextAtSize(text, 1);
+  for (const pageIndex of targetPages(pages.length, options.pages)) {
+    const page = pages[pageIndex];
+    const frame = pageFrame(page);
+    const size = visualSize(frame);
+    const fontSize = watermarkFontSize(options.layout, options.size, size, unitWidth);
+    const angle = watermarkAngle(options.layout, size);
+    const width = unitWidth * fontSize;
+    for (const center of watermarkCenters(options.layout, size, width, fontSize)) {
+      drawVisualText(page, frame, text, centeredTextOrigin(center, width, fontSize, angle), angle, {
+        font,
+        size: fontSize,
+        color: rgb(red, green, blue),
+        opacity: Math.min(Math.max(options.opacity, 0.05), 1),
+      });
+    }
+  }
+  stamp(document);
+  return document.save();
+}
+
+export interface StampImage {
+  bytes: Uint8Array;
+  format: "png" | "jpeg";
+  /** Height ÷ width. */
+  aspect: number;
+}
+
+/** Places an image (such as a signature) at each placement. */
+export async function placeImage(
+  bytes: Uint8Array,
+  image: StampImage,
+  placements: Placement[],
+): Promise<Uint8Array> {
+  if (!placements.length) throw new PdfToolError("Place your signature on at least one page.");
+  const document = await loadPdf(bytes);
+  const embedded =
+    image.format === "png"
+      ? await document.embedPng(image.bytes)
+      : await document.embedJpg(image.bytes);
+  const pages = document.getPages();
+  for (const raw of placements) {
+    const page = pages[raw.pageIndex];
+    if (!page) continue;
+    const frame = pageFrame(page);
+    const size = visualSize(frame);
+    const placement = clampPlacement(raw, image.aspect, size.height / size.width);
+    const width = placement.width * size.width;
+    const height = width * image.aspect;
+    // Placements are measured from the top-left; PDF drawing starts at the bottom-left.
+    const origin = visualToUser(frame, {
+      x: placement.left * size.width,
+      y: size.height - placement.top * size.height - height,
+    });
+    page.drawImage(embedded, {
+      x: origin.x,
+      y: origin.y,
+      width,
+      height,
+      rotate: degrees(frame.rotation),
+    });
+  }
+  stamp(document);
+  return document.save();
 }

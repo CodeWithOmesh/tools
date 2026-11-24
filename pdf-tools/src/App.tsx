@@ -5,15 +5,25 @@ import Home from "./tools/Home";
 import ImagesTool from "./tools/ImagesTool";
 import MergeTool from "./tools/MergeTool";
 import OrganizeTool from "./tools/OrganizeTool";
+import PageNumbersTool from "./tools/PageNumbersTool";
+import PdfToImagesTool from "./tools/PdfToImagesTool";
+import RotateTool from "./tools/RotateTool";
+import SignTool from "./tools/SignTool";
 import SplitTool from "./tools/SplitTool";
+import WatermarkTool from "./tools/WatermarkTool";
 import { ToolIcon } from "./ToolIcon";
 import { HOME_META, SITE_URL, TOOLS, type ToolId, type ToolInfo } from "./tools";
 
 const TOOL_COMPONENTS: Record<ToolId, (props: { tool: ToolInfo }) => JSX.Element> = {
   merge: MergeTool,
   split: SplitTool,
-  images: ImagesTool,
   organize: OrganizeTool,
+  rotate: RotateTool,
+  images: ImagesTool,
+  "to-images": PdfToImagesTool,
+  "page-numbers": PageNumbersTool,
+  watermark: WatermarkTool,
+  sign: SignTool,
 };
 
 function setMeta(selector: string, attribute: string, value: string) {

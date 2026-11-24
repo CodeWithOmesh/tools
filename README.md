@@ -31,7 +31,7 @@ Add future tools as sibling folders such as `image-compressor/`, `word-counter/`
 | QR Code Generator | `/tools/qr-code-generator/` | `qr-code-generator/` |
 | Image Compressor | `/tools/image-compressor/` | `image-compressor/` |
 | Quotation Generator | `/tools/quotation-generator/` | `quotation-generator/` |
-| PDF Tools (merge, split, JPG to PDF, organize) | `/tools/pdf-tools/` | `pdf-tools/` |
+| PDF Tools (merge, split, organize, rotate, JPG to PDF, PDF to JPG, page numbers, watermark, sign) | `/tools/pdf-tools/` | `pdf-tools/` |
 
 ## Run one tool locally
 
