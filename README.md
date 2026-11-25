@@ -14,6 +14,7 @@ Each tool lives in its own top-level directory and owns its application code, de
 ├── image-compressor/
 ├── quotation-generator/
 ├── pdf-tools/
+├── image-tools/
 ├── scripts/
 │   └── run-tools.mjs
 ├── .github/workflows/
@@ -32,6 +33,7 @@ Add future tools as sibling folders such as `image-compressor/`, `word-counter/`
 | Image Compressor | `/tools/image-compressor/` | `image-compressor/` |
 | Quotation Generator | `/tools/quotation-generator/` | `quotation-generator/` |
 | PDF Tools (merge, split, organize, rotate, JPG to PDF, PDF to JPG, page numbers, watermark, sign) | `/tools/pdf-tools/` | `pdf-tools/` |
+| Image Tools (resize, convert, crop) | `/tools/image-tools/` | `image-tools/` |
 
 ## Run one tool locally
 
@@ -41,7 +43,7 @@ npm install
 npm run dev
 ```
 
-Change to `receipt-generator`, `invoice-generator`, `image-compressor`, `quotation-generator` or `pdf-tools` to run the other tools.
+Change to `receipt-generator`, `invoice-generator`, `image-compressor`, `quotation-generator`, `pdf-tools` or `image-tools` to run the other tools.
 
 ## Build and verify all tools
 
