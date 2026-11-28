@@ -74,3 +74,13 @@ status = 200
 from = "/tools/image-tools/*"
 to = "/tools/image-tools/index.html"
 status = 200
+
+[[redirects]]
+from = "/tools/payslip-generator"
+to = "/tools/payslip-generator/index.html"
+status = 200
+
+[[redirects]]
+from = "/tools/payslip-generator/*"
+to = "/tools/payslip-generator/index.html"
+status = 200
